@@ -11,6 +11,7 @@ import com.sisregistration.bmwsis.entity.EnrollmentPeriod;
 import com.sisregistration.bmwsis.entity.Curriculum;
 import com.sisregistration.bmwsis.entity.CurriculumAssignment;
 import com.sisregistration.bmwsis.entity.Program;
+import com.sisregistration.bmwsis.entity.SystemSettings;
 import com.sisregistration.bmwsis.service.AdminService;
 import com.sisregistration.bmwsis.repository.EnrollmentPeriodRepository;
 import com.sisregistration.bmwsis.repository.CurriculumAssignmentRepository;
@@ -1199,8 +1200,122 @@ public class AdminController {
         if (admin == null) {
             return "redirect:/admin/login";
         }
-        model.addAttribute("admin", admin);
-        return "admin-settings";
+        
+        try {
+            SystemSettings settings = adminService.getSystemSettings();
+            model.addAttribute("admin", admin);
+            model.addAttribute("settings", settings);
+            return "admin-settings";
+        } catch (Exception e) {
+            // If there's an error getting settings, create a default one
+            model.addAttribute("admin", admin);
+            
+            // Create a simple default settings object
+            SystemSettings defaultSettings = new SystemSettings();
+            defaultSettings.setSystemName("BMW Student Information System");
+            defaultSettings.setInstitutionName("BMW College");
+            defaultSettings.setAcademicYear("2024-2025");
+            defaultSettings.setCurrentSemester("2nd");
+            defaultSettings.setEnrollmentOpen(true);
+            defaultSettings.setMaxUnitsPerStudent(24);
+            defaultSettings.setPassingGrade(75);
+            defaultSettings.setMidtermWeight(40);
+            defaultSettings.setFinalWeight(60);
+            defaultSettings.setGradeScale("A-F");
+            defaultSettings.setEmailNotifications(true);
+            defaultSettings.setSmsNotifications(false);
+            defaultSettings.setEnrollmentNotifications(true);
+            defaultSettings.setGradeNotifications(true);
+            defaultSettings.setSessionTimeout(60);
+            defaultSettings.setPasswordMinLength(8);
+            defaultSettings.setRequirePasswordChange(true);
+            defaultSettings.setTwoFactorAuth(false);
+            
+            model.addAttribute("settings", defaultSettings);
+            model.addAttribute("error", "Unable to load settings from database. Using default values. Error: " + e.getMessage());
+            return "admin-settings";
+        }
+    }
+    
+    @PostMapping("/settings/save")
+    public String saveSettings(@RequestParam String systemName,
+                              @RequestParam String institutionName,
+                              @RequestParam String academicYear,
+                              @RequestParam String currentSemester,
+                              @RequestParam(defaultValue = "false") boolean enrollmentOpen,
+                              @RequestParam String enrollmentStartDate,
+                              @RequestParam String enrollmentEndDate,
+                              @RequestParam int maxUnitsPerStudent,
+                              @RequestParam int passingGrade,
+                              @RequestParam int midtermWeight,
+                              @RequestParam int finalWeight,
+                              @RequestParam String gradeScale,
+                              @RequestParam(defaultValue = "false") boolean emailNotifications,
+                              @RequestParam(defaultValue = "false") boolean smsNotifications,
+                              @RequestParam(defaultValue = "false") boolean enrollmentNotifications,
+                              @RequestParam(defaultValue = "false") boolean gradeNotifications,
+                              @RequestParam int sessionTimeout,
+                              @RequestParam int passwordMinLength,
+                              @RequestParam(defaultValue = "false") boolean requirePasswordChange,
+                              @RequestParam(defaultValue = "false") boolean twoFactorAuth,
+                              HttpSession session,
+                              RedirectAttributes redirectAttributes) {
+        Admin admin = (Admin) session.getAttribute("loggedInAdmin");
+        if (admin == null) {
+            return "redirect:/admin/login";
+        }
+        
+        try {
+            // Validate that midterm and final weights total 100%
+            if (midtermWeight + finalWeight != 100) {
+                redirectAttributes.addFlashAttribute("error", "Midterm and Final weights must total 100%");
+                return "redirect:/admin/settings";
+            }
+            
+            // Get existing settings or create new
+            SystemSettings settings;
+            try {
+                settings = adminService.getSystemSettings();
+            } catch (Exception e) {
+                settings = new SystemSettings();
+            }
+            
+            // Set all the values
+            settings.setSystemName(systemName);
+            settings.setInstitutionName(institutionName);
+            settings.setAcademicYear(academicYear);
+            settings.setCurrentSemester(currentSemester);
+            settings.setEnrollmentOpen(enrollmentOpen);
+            settings.setMaxUnitsPerStudent(maxUnitsPerStudent);
+            settings.setPassingGrade(passingGrade);
+            settings.setMidtermWeight(midtermWeight);
+            settings.setFinalWeight(finalWeight);
+            settings.setGradeScale(gradeScale);
+            settings.setEmailNotifications(emailNotifications);
+            settings.setSmsNotifications(smsNotifications);
+            settings.setEnrollmentNotifications(enrollmentNotifications);
+            settings.setGradeNotifications(gradeNotifications);
+            settings.setSessionTimeout(sessionTimeout);
+            settings.setPasswordMinLength(passwordMinLength);
+            settings.setRequirePasswordChange(requirePasswordChange);
+            settings.setTwoFactorAuth(twoFactorAuth);
+            
+            // Parse dates
+            if (enrollmentStartDate != null && !enrollmentStartDate.isEmpty()) {
+                settings.setEnrollmentStartDate(java.time.LocalDate.parse(enrollmentStartDate));
+            }
+            if (enrollmentEndDate != null && !enrollmentEndDate.isEmpty()) {
+                settings.setEnrollmentEndDate(java.time.LocalDate.parse(enrollmentEndDate));
+            }
+            
+            adminService.saveSystemSettings(settings);
+            redirectAttributes.addFlashAttribute("success", "Settings saved successfully!");
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error saving settings: " + e.getMessage());
+        }
+        
+        return "redirect:/admin/settings";
     }
     
     // Simple Student Management - No Authentication Required
@@ -1569,5 +1684,109 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                 .body("Error getting debug info: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/forgot-password")
+    public String showForgotPasswordPage() {
+        return "admin-forgot-password";
+    }
+    
+    @PostMapping("/forgot-password")
+    public String processForgotPassword(@RequestParam String adminId,
+                                      RedirectAttributes redirectAttributes) {
+        try {
+            Optional<Admin> adminOpt = adminService.findAdminById(adminId);
+            
+            if (adminOpt.isPresent()) {
+                // Generate a temporary password
+                String tempPassword = generateTemporaryPassword();
+                
+                // Update admin with temporary password
+                adminService.updateAdminPassword(adminId, tempPassword);
+                
+                // In a real application, you would send this via email
+                // For this demo, we'll show it in a success message
+                redirectAttributes.addFlashAttribute("success", 
+                    "Password reset successful! Your temporary password is: " + tempPassword + 
+                    ". Please login and change your password immediately.");
+                
+                return "redirect:/admin/login";
+            } else {
+                redirectAttributes.addFlashAttribute("error", "Admin ID not found");
+                return "redirect:/admin/forgot-password";
+            }
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error processing password reset: " + e.getMessage());
+            return "redirect:/admin/forgot-password";
+        }
+    }
+    
+    private String generateTemporaryPassword() {
+        // Generate a simple temporary password
+        return "BMW" + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("MMddHHmm"));
+    }
+    
+    @GetMapping("/edit-admin/{adminId}")
+    public String editAdminForm(@PathVariable String adminId, Model model, HttpSession session) {
+        Admin loggedInAdmin = (Admin) session.getAttribute("loggedInAdmin");
+        if (loggedInAdmin == null) {
+            return "redirect:/admin/login";
+        }
+        
+        try {
+            Optional<Admin> adminToEditOpt = adminService.findAdminById(adminId);
+            if (adminToEditOpt.isPresent()) {
+                model.addAttribute("admin", loggedInAdmin);
+                model.addAttribute("adminToEdit", adminToEditOpt.get());
+                return "admin-edit-admin";
+            } else {
+                model.addAttribute("error", "Admin not found");
+                return "redirect:/admin/settings";
+            }
+        } catch (Exception e) {
+            model.addAttribute("error", "Error loading admin: " + e.getMessage());
+            return "redirect:/admin/settings";
+        }
+    }
+    
+    @PostMapping("/edit-admin/{adminId}")
+    public String updateAdminDetails(@PathVariable String adminId,
+                                   @RequestParam String firstName,
+                                   @RequestParam String lastName,
+                                   @RequestParam(required = false) String newPassword,
+                                   HttpSession session,
+                                   RedirectAttributes redirectAttributes) {
+        Admin loggedInAdmin = (Admin) session.getAttribute("loggedInAdmin");
+        if (loggedInAdmin == null) {
+            return "redirect:/admin/login";
+        }
+        
+        try {
+            Optional<Admin> adminToEditOpt = adminService.findAdminById(adminId);
+            if (adminToEditOpt.isPresent()) {
+                Admin adminToEdit = adminToEditOpt.get();
+                
+                // Update basic info
+                adminToEdit.setFirstName(firstName);
+                adminToEdit.setLastName(lastName);
+                
+                // Update password if provided
+                if (newPassword != null && !newPassword.trim().isEmpty()) {
+                    adminService.updateAdminPassword(adminId, newPassword);
+                }
+                
+                // Save the admin (this will update firstName and lastName)
+                adminService.saveAdmin(adminToEdit);
+                
+                redirectAttributes.addFlashAttribute("success", "Admin details updated successfully!");
+            } else {
+                redirectAttributes.addFlashAttribute("error", "Admin not found");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error updating admin: " + e.getMessage());
+        }
+        
+        return "redirect:/admin/settings";
     }
 } 

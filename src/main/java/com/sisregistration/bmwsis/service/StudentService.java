@@ -649,4 +649,21 @@ public class StudentService {
         
         return updatedCount;
     }
+    
+    // Password reset functionality
+    public Optional<Student> findStudentById(String studentId) {
+        return studentRepository.findByStudentId(studentId);
+    }
+    
+    public void updateStudentPassword(String studentId, String newPassword) {
+        Optional<Student> studentOpt = studentRepository.findByStudentId(studentId);
+        if (studentOpt.isPresent()) {
+            Student student = studentOpt.get();
+            // Hash the new password before saving
+            student.setPassword(passwordEncoder.encode(newPassword));
+            studentRepository.save(student);
+        } else {
+            throw new RuntimeException("Student not found with ID: " + studentId);
+        }
+    }
 } 

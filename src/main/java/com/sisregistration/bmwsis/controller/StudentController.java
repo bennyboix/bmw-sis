@@ -147,4 +147,45 @@ public class StudentController {
         session.invalidate();
         return "redirect:/student/login";
     }
+    
+    @GetMapping("/forgot-password")
+    public String showForgotPasswordPage() {
+        return "student-forgot-password";
+    }
+    
+    @PostMapping("/forgot-password")
+    public String processForgotPassword(@RequestParam String studentId,
+                                      RedirectAttributes redirectAttributes) {
+        try {
+            Optional<Student> studentOpt = studentService.findStudentById(studentId);
+            
+            if (studentOpt.isPresent()) {
+                // Generate a temporary password
+                String tempPassword = generateTemporaryPassword();
+                
+                // Update student with temporary password
+                studentService.updateStudentPassword(studentId, tempPassword);
+                
+                // In a real application, you would send this via email
+                // For this demo, we'll show it in a success message
+                redirectAttributes.addFlashAttribute("success", 
+                    "Password reset successful! Your temporary password is: " + tempPassword + 
+                    ". Please login and change your password immediately.");
+                
+                return "redirect:/student/login";
+            } else {
+                redirectAttributes.addFlashAttribute("error", "Student ID not found");
+                return "redirect:/student/forgot-password";
+            }
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error processing password reset: " + e.getMessage());
+            return "redirect:/student/forgot-password";
+        }
+    }
+    
+    private String generateTemporaryPassword() {
+        // Generate a simple temporary password
+        return "STU" + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("MMddHHmm"));
+    }
 } 

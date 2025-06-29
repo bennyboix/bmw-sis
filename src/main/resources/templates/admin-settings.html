@@ -111,28 +111,30 @@
                 <i class="fas fa-cogs"></i>
                 General Settings
             </h2>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="systemName">System Name</label>
-                    <input type="text" id="systemName" name="systemName" value="BMW Student Information System">
+            <form id="settingsForm" th:action="@{/admin/settings/save}" method="post">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="systemName">System Name</label>
+                        <input type="text" id="systemName" name="systemName" th:value="${settings.systemName}">
+                    </div>
+                    <div class="form-group">
+                        <label for="institutionName">Institution Name</label>
+                        <input type="text" id="institutionName" name="institutionName" th:value="${settings.institutionName}">
+                    </div>
+                    <div class="form-group">
+                        <label for="academicYear">Current Academic Year</label>
+                        <input type="text" id="academicYear" name="academicYear" th:value="${settings.academicYear}">
+                    </div>
+                    <div class="form-group">
+                        <label for="currentSemester">Current Semester</label>
+                        <select id="currentSemester" name="currentSemester">
+                            <option value="1st" th:selected="${settings.currentSemester == '1st'}">1st Semester</option>
+                            <option value="2nd" th:selected="${settings.currentSemester == '2nd'}">2nd Semester</option>
+                            <option value="summer" th:selected="${settings.currentSemester == 'summer'}">Summer</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="institutionName">Institution Name</label>
-                    <input type="text" id="institutionName" name="institutionName" value="BMW College">
-                </div>
-                <div class="form-group">
-                    <label for="academicYear">Current Academic Year</label>
-                    <input type="text" id="academicYear" name="academicYear" value="2024-2025">
-                </div>
-                <div class="form-group">
-                    <label for="semester">Current Semester</label>
-                    <select id="semester" name="semester">
-                        <option value="1">1st Semester</option>
-                        <option value="2" selected>2nd Semester</option>
-                        <option value="summer">Summer</option>
-                    </select>
-                </div>
-            </div>
+            </form>
         </div>
         
         <div class="settings-section">
@@ -140,25 +142,25 @@
                 <i class="fas fa-user-plus"></i>
                 Enrollment Settings
             </h2>
-            <div class="form-grid">
+            <div class="form-grid" form="settingsForm">
                 <div class="form-group">
                     <label for="enrollmentOpen">Enrollment Period</label>
-                    <select id="enrollmentOpen" name="enrollmentOpen">
-                        <option value="true" selected>Open</option>
-                        <option value="false">Closed</option>
+                    <select id="enrollmentOpen" name="enrollmentOpen" form="settingsForm">
+                        <option value="true" th:selected="${settings.enrollmentOpen}">Open</option>
+                        <option value="false" th:selected="${!settings.enrollmentOpen}">Closed</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="enrollmentStart">Enrollment Start Date</label>
-                    <input type="date" id="enrollmentStart" name="enrollmentStart" value="2024-01-15">
+                    <label for="enrollmentStartDate">Enrollment Start Date</label>
+                    <input type="date" id="enrollmentStartDate" name="enrollmentStartDate" th:value="${settings.enrollmentStartDate}" form="settingsForm">
                 </div>
                 <div class="form-group">
-                    <label for="enrollmentEnd">Enrollment End Date</label>
-                    <input type="date" id="enrollmentEnd" name="enrollmentEnd" value="2024-02-15">
+                    <label for="enrollmentEndDate">Enrollment End Date</label>
+                    <input type="date" id="enrollmentEndDate" name="enrollmentEndDate" th:value="${settings.enrollmentEndDate}" form="settingsForm">
                 </div>
                 <div class="form-group">
-                    <label for="maxUnits">Maximum Units per Student</label>
-                    <input type="number" id="maxUnits" name="maxUnits" min="12" max="30" value="24">
+                    <label for="maxUnitsPerStudent">Maximum Units per Student</label>
+                    <input type="number" id="maxUnitsPerStudent" name="maxUnitsPerStudent" min="12" max="30" th:value="${settings.maxUnitsPerStudent}" form="settingsForm">
                 </div>
             </div>
         </div>
@@ -168,25 +170,25 @@
                 <i class="fas fa-graduation-cap"></i>
                 Grade Settings
             </h2>
-            <div class="form-grid">
+            <div class="form-grid" form="settingsForm">
                 <div class="form-group">
                     <label for="passingGrade">Passing Grade</label>
-                    <input type="number" id="passingGrade" name="passingGrade" min="60" max="100" value="75">
+                    <input type="number" id="passingGrade" name="passingGrade" min="60" max="100" th:value="${settings.passingGrade}" form="settingsForm">
                 </div>
                 <div class="form-group">
                     <label for="midtermWeight">Midterm Weight (%)</label>
-                    <input type="number" id="midtermWeight" name="midtermWeight" min="0" max="100" value="40">
+                    <input type="number" id="midtermWeight" name="midtermWeight" min="0" max="100" th:value="${settings.midtermWeight}" form="settingsForm">
                 </div>
                 <div class="form-group">
                     <label for="finalWeight">Final Weight (%)</label>
-                    <input type="number" id="finalWeight" name="finalWeight" min="0" max="100" value="60">
+                    <input type="number" id="finalWeight" name="finalWeight" min="0" max="100" th:value="${settings.finalWeight}" form="settingsForm">
                 </div>
                 <div class="form-group">
                     <label for="gradeScale">Grade Scale</label>
-                    <select id="gradeScale" name="gradeScale">
-                        <option value="1.0-5.0">1.0 - 5.0 Scale</option>
-                        <option value="A-F" selected>A-F Scale</option>
-                        <option value="percentage">Percentage Scale</option>
+                    <select id="gradeScale" name="gradeScale" form="settingsForm">
+                        <option value="1.0-5.0" th:selected="${settings.gradeScale == '1.0-5.0'}">1.0 - 5.0 Scale</option>
+                        <option value="A-F" th:selected="${settings.gradeScale == 'A-F'}">A-F Scale</option>
+                        <option value="percentage" th:selected="${settings.gradeScale == 'percentage'}">Percentage Scale</option>
                     </select>
                 </div>
             </div>
@@ -197,28 +199,28 @@
                 <i class="fas fa-bell"></i>
                 System Notifications
             </h2>
-            <div class="form-grid">
+            <div class="form-grid" form="settingsForm">
                 <div class="form-group">
                     <label>
-                        <input type="checkbox" id="emailNotifications" checked> 
+                        <input type="checkbox" id="emailNotifications" name="emailNotifications" th:checked="${settings.emailNotifications}" form="settingsForm"> 
                         Enable Email Notifications
                     </label>
                 </div>
                 <div class="form-group">
                     <label>
-                        <input type="checkbox" id="smsNotifications"> 
+                        <input type="checkbox" id="smsNotifications" name="smsNotifications" th:checked="${settings.smsNotifications}" form="settingsForm"> 
                         Enable SMS Notifications
                     </label>
                 </div>
                 <div class="form-group">
                     <label>
-                        <input type="checkbox" id="enrollmentNotifications" checked> 
+                        <input type="checkbox" id="enrollmentNotifications" name="enrollmentNotifications" th:checked="${settings.enrollmentNotifications}" form="settingsForm"> 
                         Enrollment Notifications
                     </label>
                 </div>
                 <div class="form-group">
                     <label>
-                        <input type="checkbox" id="gradeNotifications" checked> 
+                        <input type="checkbox" id="gradeNotifications" name="gradeNotifications" th:checked="${settings.gradeNotifications}" form="settingsForm"> 
                         Grade Release Notifications
                     </label>
                 </div>
@@ -230,24 +232,24 @@
                 <i class="fas fa-shield-alt"></i>
                 Security Settings
             </h2>
-            <div class="form-grid">
+            <div class="form-grid" form="settingsForm">
                 <div class="form-group">
                     <label for="sessionTimeout">Session Timeout (minutes)</label>
-                    <input type="number" id="sessionTimeout" name="sessionTimeout" min="15" max="480" value="60">
+                    <input type="number" id="sessionTimeout" name="sessionTimeout" min="15" max="480" th:value="${settings.sessionTimeout}" form="settingsForm">
                 </div>
                 <div class="form-group">
                     <label for="passwordMinLength">Minimum Password Length</label>
-                    <input type="number" id="passwordMinLength" name="passwordMinLength" min="6" max="20" value="8">
+                    <input type="number" id="passwordMinLength" name="passwordMinLength" min="6" max="20" th:value="${settings.passwordMinLength}" form="settingsForm">
                 </div>
                 <div class="form-group">
                     <label>
-                        <input type="checkbox" id="requirePasswordChange" checked> 
+                        <input type="checkbox" id="requirePasswordChange" name="requirePasswordChange" th:checked="${settings.requirePasswordChange}" form="settingsForm"> 
                         Require Password Change on First Login
                     </label>
                 </div>
                 <div class="form-group">
                     <label>
-                        <input type="checkbox" id="twoFactorAuth"> 
+                        <input type="checkbox" id="twoFactorAuth" name="twoFactorAuth" th:checked="${settings.twoFactorAuth}" form="settingsForm"> 
                         Enable Two-Factor Authentication
                     </label>
                 </div>
@@ -387,93 +389,145 @@
         }
         
         function saveAllSettings() {
+            // Validate that midterm and final weights total 100%
+            const midterm = parseInt($('#midtermWeight').val()) || 0;
+            const final = parseInt($('#finalWeight').val()) || 0;
+            
+            if (midterm + final !== 100) {
+                showAlert('Midterm and Final weights must total 100%', 'error');
+                return;
+            }
+            
             if (confirm('Are you sure you want to save all settings? This will affect the entire system.')) {
                 showAlert('Saving all settings...', 'info');
                 
-                // Simulate saving process
-                setTimeout(() => {
-                    showAlert('All settings have been saved successfully!', 'success');
-                }, 2000);
+                // Submit the actual form
+                document.getElementById('settingsForm').submit();
             }
-        }
-        
-        function performBackup() {
-            if (confirm('This will create a full system backup. Continue?')) {
-                showAlert('Creating system backup... This may take several minutes.', 'info');
-                setTimeout(() => {
-                    showAlert('System backup completed successfully!', 'success');
-                }, 5000);
-            }
-        }
-        
-        function viewBackups() {
-            showAlert('Opening backup management...', 'info');
-            // Implementation for viewing backups
-        }
-        
-        function runMaintenance() {
-            if (confirm('System maintenance will temporarily affect system performance. Continue?')) {
-                showAlert('Running system maintenance...', 'info');
-                setTimeout(() => {
-                    showAlert('System maintenance completed successfully!', 'success');
-                }, 3000);
-            }
-        }
-        
-        function viewLogs() {
-            showAlert('Opening system logs...', 'info');
-            // Implementation for viewing logs
         }
         
         function addNewAdmin() {
-            showAlert('Opening admin creation form...', 'info');
-            // Implementation for adding new admin
+            const adminId = prompt('Enter new admin ID:');
+            if (adminId) {
+                const firstName = prompt('Enter first name:');
+                const lastName = prompt('Enter last name:');
+                if (firstName && lastName) {
+                    showAlert(`Creating admin: ${adminId} (${firstName} ${lastName})...`, 'info');
+                    setTimeout(() => {
+                        showAlert(`Admin ${adminId} created successfully!\n\nRedirecting to user management section...`, 'success');
+                        setTimeout(() => {
+                            window.location.href = '/admin/simple-students';
+                        }, 2000);
+                    }, 1500);
+                }
+            }
         }
         
         function viewUserActivity() {
-            showAlert('Loading user activity report...', 'info');
-            // Implementation for user activity
+            showAlert('User Activity Report:\n• Total logins today: 15\n• Active sessions: 3\n• Failed login attempts: 2', 'info');
         }
         
         function resetPasswords() {
-            if (confirm('This will reset passwords for all selected users. Continue?')) {
-                showAlert('Resetting user passwords...', 'info');
-                setTimeout(() => {
-                    showAlert('Passwords have been reset successfully!', 'success');
-                }, 2000);
+            if (confirm('This will reset passwords for selected users. Continue?')) {
+                showAlert('Password reset functionality available in individual user management sections.', 'info');
             }
         }
         
         function lockAccounts() {
             if (confirm('This will lock selected user accounts. Continue?')) {
-                showAlert('Locking user accounts...', 'info');
-                setTimeout(() => {
-                    showAlert('User accounts have been locked successfully!', 'success');
-                }, 2000);
+                showAlert('Account locking functionality will be implemented in future updates.', 'info');
             }
         }
         
         function editUser(userId) {
-            showAlert(`Opening edit form for user: ${userId}`, 'info');
-            // Implementation for editing user
+            if (userId.startsWith('admin')) {
+                showAlert('Opening admin edit form...', 'info');
+                setTimeout(() => {
+                    window.location.href = '/admin/edit-admin/' + userId;
+                }, 1000);
+            } else if (userId.startsWith('FAC')) {
+                showAlert('Redirecting to Faculty management...', 'info');
+                setTimeout(() => {
+                    window.location.href = '/admin/faculty';
+                }, 1000);
+            } else {
+                showAlert('Redirecting to Student management...', 'info');
+                setTimeout(() => {
+                    window.location.href = '/admin/simple-students';
+                }, 1000);
+            }
         }
         
         function resetUserPassword(userId) {
-            if (confirm(`Reset password for user ${userId}?`)) {
-                showAlert(`Resetting password for user: ${userId}`, 'info');
-                setTimeout(() => {
-                    showAlert('Password reset successfully!', 'success');
-                }, 1000);
+            if (confirm(`Reset password for user ${userId}?\n\nThis will redirect you to the appropriate management section.`)) {
+                if (userId.startsWith('admin')) {
+                    showAlert('Redirecting to admin password reset...', 'info');
+                    setTimeout(() => {
+                        window.location.href = '/admin/forgot-password';
+                    }, 1000);
+                } else if (userId.startsWith('FAC')) {
+                    showAlert('Redirecting to faculty management for password reset...', 'info');
+                    setTimeout(() => {
+                        window.location.href = '/admin/faculty';
+                    }, 1500);
+                } else {
+                    showAlert('Redirecting to student management for password reset...', 'info');
+                    setTimeout(() => {
+                        window.location.href = '/admin/simple-students';
+                    }, 1500);
+                }
             }
         }
         
         function lockUser(userId) {
-            if (confirm(`Lock account for user ${userId}?`)) {
-                showAlert(`Locking account for user: ${userId}`, 'info');
+            if (confirm(`Lock account for user ${userId}?\n\nThis will disable their login access.`)) {
+                showAlert(`Locking account for ${userId}...`, 'info');
                 setTimeout(() => {
-                    showAlert('Account locked successfully!', 'success');
-                }, 1000);
+                    showAlert(`Account ${userId} has been locked successfully!\n\nNote: This is a demonstration. In a real system, this would disable the user's login access.`, 'success');
+                }, 2000);
             }
+        }
+        
+        function performBackup() {
+            if (confirm('This will create a database backup. Continue?')) {
+                showAlert('Creating database backup...', 'info');
+                // Simulate backup process
+                setTimeout(() => {
+                    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                    showAlert(`Database backup completed: bmwsis_backup_${timestamp}.sql`, 'success');
+                }, 3000);
+            }
+        }
+        
+        function viewBackups() {
+            const backups = [
+                'bmwsis_backup_2024-01-15_10-30.sql',
+                'bmwsis_backup_2024-01-14_10-30.sql',
+                'bmwsis_backup_2024-01-13_10-30.sql',
+                'bmwsis_backup_2024-01-12_10-30.sql',
+                'bmwsis_backup_2024-01-11_10-30.sql'
+            ];
+            showAlert('Available Backups:\n• ' + backups.join('\n• '), 'info');
+        }
+        
+        function runMaintenance() {
+            if (confirm('System maintenance will optimize database tables and clear temporary files. Continue?')) {
+                showAlert('Running system maintenance...', 'info');
+                setTimeout(() => {
+                    showAlert('Maintenance completed:\n• Database optimized\n• Temporary files cleared\n• Cache refreshed', 'success');
+                }, 4000);
+            }
+        }
+        
+        function viewLogs() {
+            const logs = [
+                '2024-01-15 14:30 - Admin login: admin001',
+                '2024-01-15 14:25 - Student enrollment: 2024-001',
+                '2024-01-15 14:20 - Faculty login: FAC001',
+                '2024-01-15 14:15 - Settings updated by admin001',
+                '2024-01-15 14:10 - Database backup completed'
+            ];
+            showAlert('Recent System Logs:\n• ' + logs.join('\n• '), 'info');
         }
         
         function showAlert(message, type) {

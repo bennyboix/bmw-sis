@@ -12,6 +12,8 @@ import java.util.Objects;
 import java.util.ArrayList;
 import com.sisregistration.bmwsis.entity.EnrollmentPeriod;
 import com.sisregistration.bmwsis.repository.EnrollmentPeriodRepository;
+import com.sisregistration.bmwsis.entity.SystemSettings;
+import com.sisregistration.bmwsis.repository.SystemSettingsRepository;
 
 @Service
 public class AdminService {
@@ -51,6 +53,9 @@ public class AdminService {
     
     @Autowired
     private PasswordEncoder passwordEncoder;
+    
+    @Autowired
+    private SystemSettingsRepository systemSettingsRepository;
     
     public Optional<Admin> authenticateAdmin(String adminId, String password) {
         Optional<Admin> adminOpt = adminRepository.findByAdminId(adminId);
@@ -117,6 +122,9 @@ public class AdminService {
                 }
             }
             
+            // Hash the password before saving
+            student.setPassword(passwordEncoder.encode(student.getPassword()));
+            
             // Save the student
             studentRepository.save(student);
             
@@ -140,9 +148,13 @@ public class AdminService {
             String oldSection = originalStudent.getSection();
             String newSection = student.getSection();
             
-            // Preserve the original password if new password is null or empty
+            // Handle password properly - hash if new password provided, preserve if empty
             if (student.getPassword() == null || student.getPassword().trim().isEmpty()) {
+                // Preserve the original password if new password is null or empty
                 student.setPassword(originalStudent.getPassword());
+            } else {
+                // Hash the new password using BCrypt before saving
+                student.setPassword(passwordEncoder.encode(student.getPassword()));
             }
             
             // If section changed, update enrollment counts
@@ -170,9 +182,12 @@ public class AdminService {
                 }
             }
         } else {
-            // If original student not found and password is empty, set a default
+            // If original student not found and password is empty, set a default and hash it
             if (student.getPassword() == null || student.getPassword().trim().isEmpty()) {
-                student.setPassword("student123");
+                student.setPassword(passwordEncoder.encode("student123"));
+            } else {
+                // Hash the provided password
+                student.setPassword(passwordEncoder.encode(student.getPassword()));
             }
         }
         
@@ -255,7 +270,11 @@ public class AdminService {
         if (faculty.getPassword() == null || faculty.getPassword().trim().isEmpty()) {
             // Generate secure temporary password using faculty info
             String tempPassword = generateSecureTemporaryPassword(faculty);
-            faculty.setPassword(tempPassword);
+            // Hash the password before setting it
+            faculty.setPassword(passwordEncoder.encode(tempPassword));
+        } else {
+            // Hash the provided password
+            faculty.setPassword(passwordEncoder.encode(faculty.getPassword()));
         }
         
         // Ensure status is set for portal access
@@ -296,6 +315,26 @@ public class AdminService {
     }
     
     public void updateFaculty(Faculty faculty) {
+        // Get the original faculty to preserve password if not changed
+        Optional<Faculty> originalFacultyOpt = facultyRepository.findById(faculty.getId());
+        if (originalFacultyOpt.isPresent()) {
+            Faculty originalFaculty = originalFacultyOpt.get();
+            
+            // Handle password properly - hash if new password provided, preserve if empty
+            if (faculty.getPassword() == null || faculty.getPassword().trim().isEmpty()) {
+                // Preserve the original password if new password is null or empty
+                faculty.setPassword(originalFaculty.getPassword());
+            } else {
+                // Hash the new password using BCrypt before saving
+                faculty.setPassword(passwordEncoder.encode(faculty.getPassword()));
+            }
+        } else {
+            // If original faculty not found and password is provided, hash it
+            if (faculty.getPassword() != null && !faculty.getPassword().trim().isEmpty()) {
+                faculty.setPassword(passwordEncoder.encode(faculty.getPassword()));
+            }
+        }
+        
         facultyRepository.save(faculty);
     }
     
@@ -1010,5 +1049,70 @@ public class AdminService {
     
     public void updateEnrollmentPeriod(EnrollmentPeriod period) {
         enrollmentPeriodRepository.save(period);
+    }
+    
+    // Password reset functionality
+    public Optional<Admin> findAdminById(String adminId) {
+        return adminRepository.findByAdminId(adminId);
+    }
+    
+    public void updateAdminPassword(String adminId, String newPassword) {
+        Optional<Admin> adminOpt = adminRepository.findByAdminId(adminId);
+        if (adminOpt.isPresent()) {
+            Admin admin = adminOpt.get();
+            // Hash the new password before saving
+            admin.setPassword(passwordEncoder.encode(newPassword));
+            adminRepository.save(admin);
+        } else {
+            throw new RuntimeException("Admin not found with ID: " + adminId);
+        }
+    }
+    
+    // System Settings management
+    public SystemSettings getSystemSettings() {
+        System.out.println("DEBUG: Getting system settings...");
+        try {
+            Optional<SystemSettings> settingsOpt = systemSettingsRepository.findLatestSettings();
+            if (settingsOpt.isPresent()) {
+                System.out.println("DEBUG: Found existing settings with ID: " + settingsOpt.get().getId());
+                return settingsOpt.get();
+            } else {
+                System.out.println("DEBUG: No existing settings found, creating default settings...");
+                // Create default settings if none exist
+                SystemSettings defaultSettings = new SystemSettings(
+                    "BMW Student Information System", 
+                    "BMW College", 
+                    getCurrentAcademicYearUtil(), 
+                    getCurrentSemesterUtil()
+                );
+                SystemSettings savedSettings = systemSettingsRepository.save(defaultSettings);
+                System.out.println("DEBUG: Created default settings with ID: " + savedSettings.getId());
+                return savedSettings;
+            }
+        } catch (Exception e) {
+            System.err.println("ERROR in getSystemSettings: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
+    }
+    
+    public void saveSystemSettings(SystemSettings settings) {
+        systemSettingsRepository.save(settings);
+    }
+    
+    private String getCurrentSemesterUtil() {
+        java.time.LocalDate now = java.time.LocalDate.now();
+        int month = now.getMonthValue();
+        return (month >= 8 || month <= 1) ? "1st" : "2nd";
+    }
+    
+    private String getCurrentAcademicYearUtil() {
+        java.time.LocalDate now = java.time.LocalDate.now();
+        int year = now.getYear();
+        return (now.getMonthValue() >= 8) ? year + "-" + (year + 1) : (year - 1) + "-" + year;
+    }
+
+    public void saveAdmin(Admin admin) {
+        adminRepository.save(admin);
     }
 } 

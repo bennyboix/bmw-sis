@@ -810,4 +810,21 @@ public class FacultyService {
             return totalStudents > 0 ? (passingStudents.doubleValue() / totalStudents.doubleValue()) * 100 : 0.0; 
         }
     }
+    
+    // Password reset functionality
+    public Optional<Faculty> findFacultyById(String facultyId) {
+        return facultyRepository.findByFacultyId(facultyId);
+    }
+    
+    public void updateFacultyPassword(String facultyId, String newPassword) {
+        Optional<Faculty> facultyOpt = facultyRepository.findByFacultyId(facultyId);
+        if (facultyOpt.isPresent()) {
+            Faculty faculty = facultyOpt.get();
+            // Hash the new password before saving
+            faculty.setPassword(passwordEncoder.encode(newPassword));
+            facultyRepository.save(faculty);
+        } else {
+            throw new RuntimeException("Faculty not found with ID: " + facultyId);
+        }
+    }
 } 
