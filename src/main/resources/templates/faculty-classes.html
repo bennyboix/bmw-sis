@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>My Classes - BMW SIS Faculty</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/admin-style.css?v=3.0}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Assignment overview styling */
+        .assignment-overview {
+            margin-bottom: 30px;
+        }
+        
+        .overview-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #8B6F7D;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .overview-card h3 {
+            color: #8B6F7D;
+            margin: 0 0 15px 0;
+            font-size: 1.3em;
+        }
+        
+        .sections-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .section-badge {
+            background: linear-gradient(135deg, #8B6F7D 0%, #987185 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.9em;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 10px rgba(139, 111, 125, 0.3);
+        }
+        
+        .overview-card p {
+            margin: 10px 0 0 0;
+            color: #495057;
+            font-size: 1.1em;
+        }
+    </style>
+    <style>
+        /* Faculty-specific color overrides */
+        .sidebar {
+            background: linear-gradient(135deg, #8B6F7D 0%, #7A5F6C 25%, #987185 50%, #8B6F7D 75%, #7A5F6C 100%);
+            border-right: 3px solid #D6AA9F;
+        }
+        
+        .profile-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            color: white;
+        }
+        
+        .profile-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: white;
+        }
+        
+        .profile-role {
+            font-size: 0.9em;
+            opacity: 0.8;
+            color: #e8f4f8;
+        }
+        
+        .nav-section {
+            margin: 30px 20px 20px;
+        }
+        
+        .nav-section-title {
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .nav-buttons a {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-buttons a:hover,
+        .nav-buttons a.active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .nav-icon {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .logout-btn {
+            margin: auto 20px 20px;
+            padding: 12px 15px;
+            background: rgba(220, 53, 69, 0.8);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(220, 53, 69, 1);
+            transform: translateY(-2px);
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #8B6F7D 0%, #987185 100%);
+            color: white;
+            border: none;
+        }
+        
+        .stat-icon {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .stat-value {
+            color: white;
+            font-weight: 700;
+        }
+        
+        .stat-label {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .content-header h1 {
+            background: linear-gradient(135deg, #8B6F7D 0%, #987185 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #8B6F7D 0%, #987185 100%);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #7A5F6C 0%, #8B6F7D 100%);
+            transform: translateY(-2px);
+        }
+        
+        .section h2 {
+            color: #8B6F7D;
+            border-bottom-color: #8B6F7D;
+        }
+        
+        .class-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: 1px solid rgba(139, 111, 125, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .class-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(139, 111, 125, 0.2);
+        }
+        
+        .class-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f8f9fa;
+        }
+        
+        .class-title {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #8B6F7D;
+            margin: 0;
+        }
+        
+        .class-code {
+            background: linear-gradient(135deg, #8B6F7D 0%, #987185 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        
+        .class-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .detail-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #8B6F7D 0%, #987185 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+        }
+        
+        .detail-content {
+            flex: 1;
+        }
+        
+        .detail-label {
+            font-size: 0.8em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        
+        .detail-value {
+            font-weight: 600;
+            color: #333;
+            font-size: 1em;
+        }
+        
+        .enrollment-progress {
+            margin-top: 5px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #8B6F7D 0%, #987185 100%);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        
+        .class-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #8B6F7D 0%, #987185 100%);
+        }
+
+        /* Cross-Program Teaching Styles */
+        .program-overview {
+            margin-bottom: 2rem;
+        }
+
+        .program-stats {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 100px;
+            flex: 1;
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .programs-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .program-item {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            min-width: 150px;
+        }
+
+        .program-badge {
+            display: block;
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+
+        .program-count {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .next-class-alert {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+
+        .next-class-alert i {
+            margin-right: 0.5rem;
+        }
+
+        /* View Toggle Styles */
+        .view-toggle {
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .toggle-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .toggle-btn {
+            background: #f8f9fa;
+            color: #495057;
+            border: 2px solid #e9ecef;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .toggle-btn:hover {
+            background: #e9ecef;
+            color: #495057;
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+
+        .toggle-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .toggle-btn i {
+            margin-right: 0.5rem;
+        }
+
+        /* Program View Styles */
+        .program-section {
+            margin-bottom: 3rem;
+        }
+
+        .program-title {
+            color: #495057;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .program-class-count {
+            font-size: 1rem;
+            color: #6c757d;
+            font-weight: normal;
+        }
+
+        /* Day View Styles */
+        .day-section {
+            margin-bottom: 3rem;
+        }
+
+        .day-title {
+            color: #495057;
+            border-bottom: 3px solid #28a745;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .day-class-count {
+            font-size: 1rem;
+            color: #6c757d;
+            font-weight: normal;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 1rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e9ecef;
+        }
+
+        .timeline-item {
+            position: relative;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px #667eea;
+        }
+
+        .timeline-time {
+            min-width: 80px;
+            text-align: center;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .timeline-time small {
+            display: block;
+            font-size: 0.8rem;
+            color: #6c757d;
+            font-weight: normal;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-content h4 {
+            margin: 0 0 0.5rem 0;
+            color: #495057;
+        }
+
+        .timeline-content p {
+            margin: 0 0 0.25rem 0;
+            color: #6c757d;
+        }
+
+        .timeline-program {
+            min-width: 60px;
+        }
+
+        .program-tag {
+            background: #667eea;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        /* Today View Styles */
+        .today-title {
+            color: #495057;
+            border-bottom: 3px solid #ffc107;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .today-schedule {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .today-class-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .today-class-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .time-badge {
+            background: linear-gradient(135deg, #ffc107 0%, #ff8c00 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 100px;
+            font-weight: bold;
+        }
+
+        .time-badge small {
+            display: block;
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .class-info {
+            flex: 1;
+        }
+
+        .class-info h4 {
+            margin: 0 0 0.5rem 0;
+            color: #495057;
+        }
+
+        .class-info p {
+            margin: 0 0 0.25rem 0;
+            color: #6c757d;
+        }
+
+        .program-indicator {
+            background: #f8f9fa;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .empty-today {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+
+        .empty-today i {
+            font-size: 3rem;
+            color: #e9ecef;
+            margin-bottom: 1rem;
+        }
+
+        /* Section View Styles */
+        .section-group {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            color: #495057;
+            border-bottom: 3px solid #dc3545;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-class-count {
+            font-size: 1rem;
+            color: #6c757d;
+            font-weight: normal;
+        }
+
+        /* Classes Grid */
+        .classes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .program-stats {
+                flex-direction: column;
+            }
+            
+            .toggle-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .timeline-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .today-class-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .classes-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <span>BMW SIS</span>
+            </div>
+            <div class="logo-subtitle">Faculty Portal</div>
+        </div>
+        
+        <!-- Profile Section -->
+        <div class="profile-section">
+            <div class="profile-avatar">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="profile-name" th:text="${faculty.firstName + ' ' + faculty.lastName}">Faculty Name</div>
+            <div class="profile-role" th:text="${faculty.facultyId}">Faculty ID</div>
+        </div>
+        
+        <!-- Navigation -->
+        <div class="nav-section">
+            <div class="nav-section-title">Main Menu</div>
+            <div class="nav-buttons">
+                <a href="/faculty/dashboard">
+                    <i class="fas fa-tachometer-alt nav-icon"></i>
+                    Dashboard
+                </a>
+                <a href="/faculty/classes" class="active">
+                    <i class="fas fa-chalkboard-teacher nav-icon"></i>
+                    My Classes
+                </a>
+                <a href="/faculty/grades">
+                    <i class="fas fa-clipboard-list nav-icon"></i>
+                    Manage Grades
+                </a>
+                <a href="/faculty/students">
+                    <i class="fas fa-user-graduate nav-icon"></i>
+                    Students
+                </a>
+                <a href="/faculty/schedule">
+                    <i class="fas fa-calendar-alt nav-icon"></i>
+                    Schedule
+                </a>
+            </div>
+        </div>
+        
+        <a href="/faculty/logout" class="logout-btn">
+            <i class="fas fa-sign-out-alt" style="margin-right: 8px;"></i>
+            Logout
+        </a>
+    </div>
+    
+    <div class="main-content">
+        <!-- Header Section -->
+        <div class="content-header">
+            <div class="header-content">
+                <h1><i class="fas fa-chalkboard-teacher"></i> My Classes</h1>
+                <p class="header-description">Manage your assigned classes, view student enrollment, and access class resources.</p>
+            </div>
+            <div class="header-actions">
+                <span class="department-info">
+                    <i class="fas fa-building"></i>
+                    Department: <strong th:text="${faculty.department}">Computer Science</strong>
+                </span>
+            </div>
+        </div>
+        
+        <!-- Alerts -->
+        <div th:if="${success}" class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <span th:text="${success}"></span>
+        </div>
+        <div th:if="${error}" class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span th:text="${error}"></span>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" th:text="${schedules.size()}">4</div>
+                    <div class="stat-label">Total Classes</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalStudents">0</div>
+                    <div class="stat-label">Total Students</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-user-friends"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="avgEnrollment">0</div>
+                    <div class="stat-label">Avg Enrollment</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="capacityUsed">0%</div>
+                    <div class="stat-label">Capacity Used</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Class Schedule Overview -->
+        <div class="content-section">
+            <div class="section-header">
+                <h2><i class="fas fa-calendar-alt"></i> Class Schedule Overview</h2>
+            </div>
+            
+            <!-- Cross-Program Teaching Overview -->
+            <div th:if="${programLoad != null and programLoad.totalPrograms > 0}" class="program-overview">
+                <div class="overview-card">
+                    <h3><i class="fas fa-graduation-cap"></i> Cross-Program Teaching Load</h3>
+                    
+                    <div class="program-stats">
+                        <div class="stat-item">
+                            <span class="stat-number" th:text="${programLoad.totalPrograms}">2</span>
+                            <span class="stat-label">Programs</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" th:text="${programLoad.totalClasses}">5</span>
+                            <span class="stat-label">Total Classes</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" th:text="${assignedSections.size()}">8</span>
+                            <span class="stat-label">Sections</span>
+                        </div>
+                    </div>
+                    
+                    <div class="programs-list">
+                        <div th:each="program : ${programLoad.programCounts.keySet()}" class="program-item">
+                            <span class="program-badge" th:text="${program}">Information Technology</span>
+                            <span class="program-count" th:text="${programLoad.programCounts.get(program)} + ' classes'">3 classes</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Next Class Alert -->
+                    <div th:if="${nextClass != null}" class="next-class-alert">
+                        <i class="fas fa-clock"></i>
+                        <strong>Next Class:</strong> 
+                        <span th:text="${nextClass.subject.subjectCode}">CS101</span> 
+                        - <span th:text="${nextClass.sectionCode}">CS-2A</span> 
+                        at <span th:text="${nextClass.startTime}">10:00</span>
+                        in <span th:text="${nextClass.room}">Room 205</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View Toggle Buttons -->
+            <div class="view-toggle">
+                <h3><i class="fas fa-eye"></i> Organize Classes By:</h3>
+                <div class="toggle-buttons">
+                    <a th:href="@{/faculty/classes(view='program')}" 
+                       th:class="'toggle-btn ' + (${currentView} == 'program' ? 'active' : '')">
+                        <i class="fas fa-graduation-cap"></i> Program
+                    </a>
+                    <a th:href="@{/faculty/classes(view='section')}" 
+                       th:class="'toggle-btn ' + (${currentView} == 'section' ? 'active' : '')">
+                        <i class="fas fa-users-class"></i> Section
+                    </a>
+                    <a th:href="@{/faculty/classes(view='day')}" 
+                       th:class="'toggle-btn ' + (${currentView} == 'day' ? 'active' : '')">
+                        <i class="fas fa-calendar-day"></i> Daily Schedule
+                    </a>
+                    <a th:href="@{/faculty/classes(view='today')}" 
+                       th:class="'toggle-btn ' + (${currentView} == 'today' ? 'active' : '')">
+                        <i class="fas fa-clock"></i> Today Only
+                    </a>
+                </div>
+            </div>
+
+            <!-- PROGRAM VIEW -->
+            <div th:if="${currentView == 'program' and !schedulesByProgram.empty}">
+                <div th:each="programEntry : ${schedulesByProgram}" class="program-section">
+                    <h3 class="program-title">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span th:text="${programEntry.key}">Information Technology</span>
+                        <span class="program-class-count" th:text="'(' + ${programEntry.value.size()} + ' classes)'"></span>
+                    </h3>
+                    
+                    <div class="classes-grid">
+                        <div th:each="schedule : ${programEntry.value}" class="class-card">
+                            <div class="class-header">
+                                <h4 class="class-title" th:text="${schedule.subject.subjectName}">Programming 101</h4>
+                                <span class="class-code" th:text="${schedule.subject.subjectCode}">CS101</span>
+                            </div>
+                            
+                            <div class="class-details">
+                                <div class="detail-item">
+                                    <div class="detail-icon"><i class="fas fa-layer-group"></i></div>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Section</div>
+                                        <div class="detail-value" th:text="${schedule.sectionCode}">IT-1A</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="detail-item">
+                                    <div class="detail-icon"><i class="fas fa-clock"></i></div>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Schedule</div>
+                                        <div class="detail-value">
+                                            <span th:text="${schedule.dayOfWeek}">Monday</span><br>
+                                            <small><span th:text="${schedule.startTime}">8:00</span> - <span th:text="${schedule.endTime}">10:00</span></small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="detail-item">
+                                    <div class="detail-icon"><i class="fas fa-door-open"></i></div>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Room</div>
+                                        <div class="detail-value" th:text="${schedule.room}">Room 201</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="class-actions">
+                                <a th:href="@{'/faculty/class/' + ${schedule.id} + '/students'}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-users"></i> Students
+                                </a>
+                                <a th:href="@{'/faculty/grades?schedule=' + ${schedule.id}}" class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-clipboard-list"></i> Grades
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DAY VIEW -->
+            <div th:if="${currentView == 'day' and !schedulesByDay.empty}">
+                <div th:each="dayEntry : ${schedulesByDay}" class="day-section">
+                    <h3 class="day-title">
+                        <i class="fas fa-calendar-day"></i>
+                        <span th:text="${dayEntry.key}">Monday</span>
+                        <span class="day-class-count" th:text="'(' + ${dayEntry.value.size()} + ' classes)'"></span>
+                    </h3>
+                    
+                    <div class="timeline">
+                        <div th:each="schedule : ${dayEntry.value}" class="timeline-item">
+                            <div class="timeline-time">
+                                <span th:text="${schedule.startTime}">8:00</span>
+                                <small th:text="${schedule.endTime}">10:00</small>
+                            </div>
+                            <div class="timeline-content">
+                                <h4><span th:text="${schedule.subject.subjectCode}">CS101</span> - <span th:text="${schedule.sectionCode}">IT-1A</span></h4>
+                                <p th:text="${schedule.subject.subjectName}">Programming Fundamentals</p>
+                                <small><i class="fas fa-door-open"></i> <span th:text="${schedule.room}">Room 201</span></small>
+                            </div>
+                            <div class="timeline-program">
+                                <span class="program-tag" th:text="${schedule.sectionCode.substring(0, schedule.sectionCode.indexOf('-'))}">IT</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TODAY VIEW -->
+            <div th:if="${currentView == 'today'}">
+                <h3 class="today-title">
+                    <i class="fas fa-clock"></i> Today's Schedule 
+                    <span th:text="'(' + ${todaySchedule.size()} + ' classes)'">(3 classes)</span>
+                </h3>
+                
+                <div th:if="${!todaySchedule.empty}" class="today-schedule">
+                    <div th:each="schedule : ${todaySchedule}" class="today-class-card">
+                        <div class="time-badge">
+                            <span th:text="${schedule.startTime}">8:00</span>
+                            <small th:text="${schedule.endTime}">10:00</small>
+                        </div>
+                        <div class="class-info">
+                            <h4><span th:text="${schedule.subject.subjectCode}">CS101</span> - <span th:text="${schedule.sectionCode}">IT-1A</span></h4>
+                            <p th:text="${schedule.subject.subjectName}">Programming Fundamentals</p>
+                            <small><i class="fas fa-door-open"></i> <span th:text="${schedule.room}">Room 201</span></small>
+                        </div>
+                        <div class="program-indicator">
+                            <span th:text="${schedule.sectionCode.substring(0, schedule.sectionCode.indexOf('-'))}">IT</span>
+                        </div>
+                        <div class="class-actions">
+                            <a th:href="@{'/faculty/class/' + ${schedule.id} + '/students'}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-users"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div th:if="${todaySchedule.empty}" class="empty-today">
+                    <i class="fas fa-calendar-check"></i>
+                    <h4>No Classes Today</h4>
+                    <p>You have no scheduled classes for today. Enjoy your free time!</p>
+                </div>
+            </div>
+
+            <!-- SECTION VIEW (Default/Fallback) -->
+            <div th:if="${currentView == 'section' and !schedulesBySection.empty}">
+                <div th:each="sectionEntry : ${schedulesBySection}" class="section-group">
+                    <h3 class="section-title">
+                        <i class="fas fa-users-class"></i>
+                        Section <span th:text="${sectionEntry.key}">IT-1A</span>
+                        <span class="section-class-count" th:text="'(' + ${sectionEntry.value.size()} + ' subjects)'"></span>
+                    </h3>
+                    
+                    <div class="classes-grid">
+                        <div th:each="schedule : ${sectionEntry.value}" class="class-card">
+                            <!-- Same class card structure as program view -->
+                            <div class="class-header">
+                                <h4 class="class-title" th:text="${schedule.subject.subjectName}">Programming 101</h4>
+                                <span class="class-code" th:text="${schedule.subject.subjectCode}">CS101</span>
+                            </div>
+                            <div class="class-details">
+                                <div class="detail-item">
+                                    <div class="detail-icon"><i class="fas fa-clock"></i></div>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Schedule</div>
+                                        <div class="detail-value">
+                                            <span th:text="${schedule.dayOfWeek}">Monday</span><br>
+                                            <small><span th:text="${schedule.startTime}">8:00</span> - <span th:text="${schedule.endTime}">10:00</span></small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-icon"><i class="fas fa-door-open"></i></div>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Room</div>
+                                        <div class="detail-value" th:text="${schedule.room}">Room 201</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="class-actions">
+                                <a th:href="@{'/faculty/class/' + ${schedule.id} + '/students'}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-users"></i> Students
+                                </a>
+                                <a th:href="@{'/faculty/grades?schedule=' + ${schedule.id}}" class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-clipboard-list"></i> Grades
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EMPTY STATE -->
+            <div th:if="${schedules.empty}" class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-chalkboard"></i>
+                </div>
+                <h3>No Classes Assigned</h3>
+                <p>You don't have any classes assigned for this semester. Contact the administration for class assignments.</p>
+            </div>
+            
+            <div th:unless="${schedules.empty}" class="classes-grid">
+                <div th:each="schedule : ${schedules}" class="class-card">
+                    <div class="class-header">
+                        <h3 class="class-title" th:text="${schedule.subject.subjectName}">Introduction to Programming</h3>
+                        <span class="class-code" th:text="${schedule.subject.subjectCode}">CS101</span>
+                    </div>
+                    
+                    <div class="class-details">
+                        <div class="detail-item">
+                            <div class="detail-icon">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <div class="detail-content">
+                                <div class="detail-label">Section</div>
+                                <div class="detail-value" th:text="${schedule.sectionCode}">A</div>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <div class="detail-icon">
+                                <i class="fas fa-calendar-day"></i>
+                            </div>
+                            <div class="detail-content">
+                                <div class="detail-label">Schedule</div>
+                                <div class="detail-value">
+                                    <span th:text="${schedule.dayOfWeek}">Monday</span><br>
+                                    <small><span th:text="${schedule.startTime}">9:00</span> - <span th:text="${schedule.endTime}">10:30</span></small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <div class="detail-icon">
+                                <i class="fas fa-door-open"></i>
+                            </div>
+                            <div class="detail-content">
+                                <div class="detail-label">Room</div>
+                                <div class="detail-value" th:text="${schedule.room}">Room 101</div>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <div class="detail-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="detail-content">
+                                <div class="detail-label">Enrollment</div>
+                                <div class="detail-value">
+                                    <span th:text="${schedule.currentEnrolled}">25</span> / <span th:text="${schedule.maxSlots}">30</span>
+                                    <div class="enrollment-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" th:style="'width: ' + (${schedule.currentEnrolled} * 100 / ${schedule.maxSlots}) + '%'"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="class-actions">
+                        <a th:href="@{/faculty/class/{id}/students(id=${schedule.id})}" class="btn btn-info">
+                            <i class="fas fa-users"></i> View Students
+                        </a>
+                        <a th:href="@{/faculty/class/{id}/grades(id=${schedule.id})}" class="btn btn-primary">
+                            <i class="fas fa-clipboard-list"></i> Manage Grades
+                        </a>
+                        <a th:href="@{/faculty/class/{id}/attendance(id=${schedule.id})}" class="btn btn-success">
+                            <i class="fas fa-check-square"></i> Attendance
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Calculate statistics
+        let totalStudents = 0;
+        let totalCapacity = 0;
+        let classCount = 0;
+        
+        document.querySelectorAll('.class-card').forEach(card => {
+            const enrollmentText = card.querySelector('.detail-value');
+            if (enrollmentText) {
+                const text = enrollmentText.textContent.trim();
+                const match = text.match(/(\d+)\s*\/\s*(\d+)/);
+                if (match) {
+                    const enrolled = parseInt(match[1]);
+                    const capacity = parseInt(match[2]);
+                    totalStudents += enrolled;
+                    totalCapacity += capacity;
+                    classCount++;
+                }
+            }
+        });
+        
+        // Update stat cards
+        document.getElementById('totalStudents').textContent = totalStudents;
+        document.getElementById('avgEnrollment').textContent = classCount > 0 ? Math.round(totalStudents / classCount) : 0;
+        document.getElementById('capacityUsed').textContent = totalCapacity > 0 ? Math.round((totalStudents / totalCapacity) * 100) + '%' : '0%';
+        
+        // Animate progress bars
+        setTimeout(() => {
+            document.querySelectorAll('.progress-fill').forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 100);
+            });
+        }, 500);
+    </script>
+</body>
+</html> 

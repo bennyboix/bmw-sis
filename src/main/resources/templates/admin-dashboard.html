@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>BMW-SIS Admin Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/admin-style.css?v=3.0}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" th:src="@{/js/admin-main.js?v=2.0}"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="profile-section">
+            <div class="profile-avatar">
+                <img src="/BMWlogo.png" alt="BMW Logo" style="width: 60px; height: 60px; border-radius: 50%; object-fit: contain; background: white; padding: 8px;"/>
+            </div>
+            <div class="profile-name" th:text="${admin != null ? admin.firstName + ' ' + admin.lastName : 'Administrator'}">Administrator</div>
+            <div class="profile-role">System Administrator</div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Main Navigation</div>
+            <div class="nav-buttons">
+                <a href="/admin/dashboard" class="active">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/admin/simple-students">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>Students</span>
+                </a>
+                <a href="/admin/faculty">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <span>Faculty</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Academic Management</div>
+            <div class="nav-buttons">
+                <a href="/admin/programs">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Programs</span>
+                </a>
+                <a href="/admin/subjects">
+                    <i class="fas fa-book"></i>
+                    <span>Subjects</span>
+                </a>
+                <a href="/admin/schedules">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Schedules</span>
+                </a>
+                <a href="/admin/curriculum">
+                    <i class="fas fa-list-alt"></i>
+                    <span>Curriculum</span>
+                </a>
+                <a href="/admin/sections">
+                    <i class="fas fa-building"></i>
+                    <span>Sections</span>
+                </a>
+                <a href="/admin/enrollment">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Enrollment</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">System</div>
+            <div class="nav-buttons">
+                <a href="/admin/settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </div>
+
+        <a href="/admin/logout" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </a>
+    </div>
+
+    <div class="main-content">
+        <div class="content-header">
+            <h1>Admin Dashboard</h1>
+            <p>Welcome to the BMW Student Information System Admin Panel</p>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="refreshDashboard()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${success}" class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <span th:text="${success}"></span>
+        </div>
+        <div th:if="${error}" class="alert alert-error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span th:text="${error}"></span>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div class="stat-content">
+                <div class="stat-value" th:text="${studentCount}">0</div>
+                <div class="stat-label">Total Students</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div class="stat-content">
+                <div class="stat-value" th:text="${facultyCount}">0</div>
+                <div class="stat-label">Faculty Members</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="stat-content">
+                <div class="stat-value" th:text="${subjectCount}">0</div>
+                <div class="stat-label">Active Subjects</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="stat-content">
+                <div class="stat-value" th:text="${scheduleCount}">0</div>
+                <div class="stat-label">Class Schedules</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="stat-content">
+                <div class="stat-value" th:text="${programCount}">0</div>
+                <div class="stat-label">Academic Programs</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-list-alt"></i>
+                </div>
+                <div class="stat-content">
+                <div class="stat-value" th:text="${curriculumCount}">0</div>
+                <div class="stat-label">Curriculum Programs</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="stat-content">
+                <div class="stat-value" th:text="${sectionCount}">0</div>
+                <div class="stat-label">Active Sections</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="section">
+                <h2>
+                    <i class="fas fa-bolt"></i>
+                    Quick Actions
+                </h2>
+                <div class="quick-actions">
+                    <a href="/admin/simple-students" class="quick-action">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Add Student</span>
+                    </a>
+                    <a href="/admin/faculty" class="quick-action">
+                        <i class="fas fa-user-tie"></i>
+                        <span>Add Faculty</span>
+                    </a>
+                    <a href="/admin/subjects" class="quick-action">
+                        <i class="fas fa-book-plus"></i>
+                        <span>Add Subject</span>
+                    </a>
+                    <a href="/admin/schedules" class="quick-action">
+                        <i class="fas fa-calendar-plus"></i>
+                        <span>Create Schedule</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>
+                    <i class="fas fa-chart-bar"></i>
+                    System Overview
+                </h2>
+                <div class="overview-stats">
+                    <div class="overview-item">
+                        <div class="overview-icon bg-primary">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="overview-content">
+                            <h3>Active Users</h3>
+                            <p th:text="${studentCount + facultyCount}">0</p>
+                            <small>Students and Faculty</small>
+                        </div>
+                    </div>
+                    <div class="overview-item">
+                        <div class="overview-icon bg-success">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <div class="overview-content">
+                            <h3>Academic Programs</h3>
+                            <p th:text="${sectionCount}">0</p>
+                            <small>Active Sections</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>
+                    <i class="fas fa-clock"></i>
+                    Recent Activity
+                </h2>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Students Registered</div>
+                            <div class="activity-desc">New student registrations processed</div>
+                            <div class="activity-time">Today</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Schedules Updated</div>
+                            <div class="activity-desc">Class schedules have been modified</div>
+                            <div class="activity-time">2 hours ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Subjects Added</div>
+                            <div class="activity-desc">New courses are now available</div>
+                            <div class="activity-time">Yesterday</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize dashboard
+            initializeDashboard();
+            
+            $('.stat-number').each(function() {
+                const $this = $(this);
+                const countTo = parseInt($this.attr('data-count'));
+                
+                $({ countNum: $this.text() }).animate({
+                    countNum: countTo
+                }, {
+                    duration: 1000,
+                    easing: 'linear',
+                    step: function() {
+                        $this.text(Math.floor(this.countNum));
+                    },
+                    complete: function() {
+                        $this.text(this.countNum);
+                    }
+                });
+            });
+        });
+
+        function initializeDashboard() {
+            // Add loading states
+            $('.stat-card').addClass('loaded');
+            
+            // Animate stats on load
+            $('.stat-value').each(function() {
+                const $this = $(this);
+                const countTo = parseInt($this.text()) || 0;
+                
+                // Ensure the final value is set immediately if animation fails
+                $this.text(countTo);
+                
+                // Only animate if value is greater than 0 and less than 100 (to avoid long animations)
+                if (countTo > 0 && countTo < 100) {
+                    $this.text('0');
+                    $({ countNum: 0 }).animate({
+                        countNum: countTo
+                    }, {
+                        duration: 1500,
+                        easing: 'swing',
+                        step: function() {
+                            $this.text(Math.floor(this.countNum));
+                        },
+                        complete: function() {
+                            $this.text(countTo);
+                        }
+                    });
+                }
+            });
+        }
+
+        function refreshDashboard() {
+            location.reload();
+        }
+
+        function updateStatistics() {
+            // This would typically make an AJAX call to update stats
+        }
+    </script>
+</body>
+</html>

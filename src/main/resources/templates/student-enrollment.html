@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Enrollment - BMW-SIS</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f4f4;
+            color: #423736;
+        }
+        .header {
+            background: linear-gradient(135deg, #987185 0%, #D6AA9F 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .logo img {
+            height: 40px;
+            width: auto;
+        }
+        .logo i {
+            margin-right: 8px;
+            font-size: 1.2em;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .nav-links a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        .page-header {
+            background: #F4E2D1;
+            padding: 2rem;
+            border-radius: 10px;
+            border: 1px solid #b9b8b8;
+            box-shadow: 2px 2px 8px #bcb6b6;
+            margin-bottom: 2rem;
+        }
+        .page-header h1 {
+            color: #987185;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .enrollment-status {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .status-open {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-closed {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .alert {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .subjects-container {
+            background: #F4E2D1;
+            border-radius: 10px;
+            border: 1px solid #b9b8b8;
+            box-shadow: 2px 2px 8px #bcb6b6;
+            overflow: hidden;
+        }
+        .subjects-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .subjects-table th {
+            background: #987185;
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+        .subjects-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: top;
+        }
+        .subjects-table tr:hover {
+            background: #D6AA9F;
+        }
+        .subject-code {
+            font-weight: 600;
+            color: #987185;
+        }
+        .units-badge {
+            background: #e9ecef;
+            color: #495057;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        .schedule-info {
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+        .schedule-info .section {
+            font-weight: 600;
+            color: #495057;
+        }
+        .schedule-info .time {
+            color: #28a745;
+            font-weight: 500;
+        }
+        .schedule-info .room {
+            color: #6c757d;
+        }
+        .faculty-name {
+            color: #495057;
+            font-weight: 500;
+        }
+        .slots-info {
+            text-align: center;
+        }
+        .slots-available {
+            color: #28a745;
+            font-weight: 600;
+        }
+        .slots-full {
+            color: #dc3545;
+            font-weight: 600;
+        }
+        .enroll-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .enroll-btn:hover {
+            background: #218838;
+        }
+        .enroll-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .no-subjects {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+        .no-subjects .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        @media (max-width: 768px) {
+            .subjects-table {
+                font-size: 0.875rem;
+            }
+            .subjects-table th,
+            .subjects-table td {
+                padding: 0.75rem 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <img src="/BMWlogo.png" alt="BMW Logo" onerror="this.style.display='none'"/>
+                <span>BMW-SIS Student Portal</span>
+            </div>
+            <div class="nav-links">
+                <a href="/student/dashboard">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/student/grades">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Grades</span>
+                </a>
+                <a href="/student/schedule">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Schedule</span>
+                </a>
+                <a href="/student/logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>
+                <i class="fas fa-user-plus"></i>
+                <span>Subject Enrollment</span>
+            </h1>
+            <p th:text="'Select and enroll in subjects from your assigned curriculum packages for ' + ${student.firstName} + ' ' + ${student.lastName} + ' (' + ${student.course} + ', Year ' + ${student.yearLevel} + ', Section: ' + ${student.section} + ')'"></p>
+            <div style="margin-top: 15px; padding: 10px; background: #e7f3ff; border-radius: 5px; border-left: 4px solid #007bff;">
+                <small><strong>Note:</strong> The subjects below are from curriculum packages assigned to you by your academic advisor. You can choose which subjects to enroll in based on your academic plan.</small>
+            </div>
+        </div>
+
+        <div th:if="${enrollmentOpen}" class="enrollment-status status-open">
+            <i class="fas fa-check-circle"></i>
+            <span>Enrollment is currently OPEN. You can enroll in available subjects below.</span>
+        </div>
+        
+        <div th:if="${!enrollmentOpen}" class="enrollment-status status-closed">
+            <i class="fas fa-times-circle"></i>
+            <span>Enrollment is currently CLOSED. Please check back during the enrollment period.</span>
+        </div>
+
+        <div th:if="${error}" class="alert alert-error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span th:text="${error}"></span>
+        </div>
+        <div th:if="${success}" class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <span th:text="${success}"></span>
+        </div>
+
+        <div class="subjects-container">
+            <div th:if="${#lists.isEmpty(availableSchedules)}" class="no-subjects">
+                <div class="icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <h3>No Available Subjects</h3>
+                <p th:if="${!enrollmentOpen}">Enrollment is currently closed. No subjects are available for enrollment at this time.</p>
+                <div th:if="${enrollmentOpen}">
+                    <p><strong>No subjects are currently available for enrollment.</strong></p>
+                    <p>This could mean:</p>
+                    <ul style="text-align: left; display: inline-block; margin: 10px 0;">
+                        <li>No curriculum packages have been assigned to you yet</li>
+                        <li>You have already enrolled in all available subjects</li>
+                        <li>Subject schedules for your section are not yet created</li>
+                        <li>All available classes are currently full</li>
+                    </ul>
+                    <p><strong>Next steps:</strong> Please contact your academic advisor or the registrar's office to have curriculum packages assigned to your account.</p>
+                </div>
+            </div>
+            
+            <table th:if="${!#lists.isEmpty(availableSchedules)}" class="subjects-table">
+                <thead>
+                    <tr>
+                        <th>Subject Code</th>
+                        <th>Subject Description</th>
+                        <th>Units</th>
+                        <th>Schedule Details</th>
+                        <th>Faculty</th>
+                        <th>Enrolled / Max Slots</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="scheduleInfo : ${availableSchedules}">
+                        <td>
+                            <span class="subject-code" th:text="${scheduleInfo.schedule.subject.subjectCode}"></span>
+                        </td>
+                        <td th:text="${scheduleInfo.schedule.subject.subjectDescription}"></td>
+                        <td>
+                            <span class="units-badge" th:text="${scheduleInfo.schedule.subject.units} + ' units'"></span>
+                        </td>
+                        <td>
+                            <div class="schedule-info">
+                                <div class="section" th:text="'Section: ' + ${scheduleInfo.schedule.sectionCode}"></div>
+                                <div class="time" th:text="${scheduleInfo.schedule.dayOfWeek} + ' ' + ${scheduleInfo.schedule.timeRange}"></div>
+                                <div class="room" th:text="'Room: ' + ${scheduleInfo.schedule.room}"></div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="faculty-name" th:text="${scheduleInfo.schedule.faculty.fullName}"></span>
+                        </td>
+                        <td class="slots-info">
+                            <span th:if="${scheduleInfo.hasAvailableSlots}" 
+                                  class="slots-available" 
+                                  th:text="${scheduleInfo.slotsDisplay}"></span>
+                            <span th:if="${!scheduleInfo.hasAvailableSlots}" 
+                                  class="slots-full">FULL</span>
+                        </td>
+                        <td>
+                            <form th:action="@{/student/enroll}" method="post" style="display: inline;">
+                                <input type="hidden" name="scheduleId" th:value="${scheduleInfo.schedule.id}">
+                                <button type="submit" 
+                                        class="enroll-btn"
+                                        th:disabled="${!enrollmentOpen || !scheduleInfo.hasAvailableSlots}">
+                                    <i class="fas fa-user-plus"></i>
+                                    <span th:text="${scheduleInfo.hasAvailableSlots ? 'Enroll' : 'Full'}"></span>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html> 

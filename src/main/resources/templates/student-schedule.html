@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>My Schedule - BMW-SIS</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f4f4;
+            color: #423736;
+        }
+        .header {
+            background: linear-gradient(135deg, #987185 0%, #D6AA9F 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .logo img {
+            height: 40px;
+            width: auto;
+        }
+        .logo i {
+            margin-right: 8px;
+            font-size: 1.2em;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .nav-links a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        .page-header {
+            background: #F4E2D1;
+            padding: 2rem;
+            border-radius: 10px;
+            border: 1px solid #b9b8b8;
+            box-shadow: 2px 2px 8px #bcb6b6;
+            margin-bottom: 2rem;
+        }
+        .page-header h1 {
+            color: #987185;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .schedule-container {
+            background: #F4E2D1;
+            border-radius: 10px;
+            border: 1px solid #b9b8b8;
+            box-shadow: 2px 2px 8px #bcb6b6;
+            overflow: hidden;
+        }
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .schedule-table th {
+            background: #987185;
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+        .schedule-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: top;
+        }
+        .schedule-table tr:hover {
+            background: #D6AA9F;
+        }
+        .subject-code {
+            font-weight: 600;
+            color: #987185;
+        }
+        .units-badge {
+            background: #e9ecef;
+            color: #495057;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        .schedule-info {
+            line-height: 1.6;
+        }
+        .schedule-info .section {
+            font-weight: 600;
+            color: #495057;
+        }
+        .schedule-info .time {
+            color: #28a745;
+            font-weight: 500;
+        }
+        .schedule-info .room {
+            color: #6c757d;
+        }
+        .subject-info {
+            line-height: 1.4;
+        }
+        .subject-code {
+            font-weight: 600;
+            color: #987185;
+            font-size: 1.1em;
+            margin-bottom: 4px;
+        }
+        .subject-desc {
+            color: #495057;
+            font-size: 0.9em;
+        }
+        .faculty-info {
+            line-height: 1.4;
+        }
+        .faculty-name {
+            color: #495057;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .faculty-title {
+            color: #6c757d;
+            font-size: 0.85em;
+            font-style: italic;
+        }
+        .schedule-info {
+            line-height: 1.4;
+        }
+        .day-info {
+            font-weight: 600;
+            color: #987185;
+            margin-bottom: 4px;
+        }
+        .time {
+            color: #28a745;
+            font-weight: 500;
+        }
+        .location-info {
+            line-height: 1.4;
+        }
+        .room {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-bottom: 2px;
+        }
+        .section {
+            font-weight: 500;
+            color: #495057;
+            font-size: 0.9em;
+        }
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-enrolled {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-completed {
+            background: #cce5ff;
+            color: #004085;
+            border: 1px solid #99d6ff;
+        }
+        .status-other {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .no-schedule {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+        .no-schedule .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        .total-units {
+            background: #e7f3ff;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            text-align: center;
+        }
+        .total-units h3 {
+            color: #0066cc;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .enroll-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: #D6AA9F;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.2s ease;
+        }
+        .enroll-link:hover {
+            background: #423736;
+        }
+        @media (max-width: 768px) {
+            .schedule-table {
+                font-size: 0.875rem;
+            }
+            .schedule-table th,
+            .schedule-table td {
+                padding: 0.75rem 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <img src="/BMWlogo.png" alt="BMW Logo" onerror="this.style.display='none'"/>
+                <span>BMW-SIS Student Portal</span>
+            </div>
+            <div class="nav-links">
+                <a href="/student/dashboard">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/student/grades">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Grades</span>
+                </a>
+                <a href="/student/enroll">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Enrollment</span>
+                </a>
+                <a href="/student/logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>
+                <i class="fas fa-calendar-alt"></i>
+                <span>My Schedule</span>
+            </h1>
+            <p th:text="'Current class schedule for ' + ${student.firstName} + ' ' + ${student.lastName} + ' (' + ${student.fullSection} + ')'"></p>
+        </div>
+
+        <div class="schedule-container">
+            <div th:if="${#lists.isEmpty(enrollments)}" class="no-schedule">
+                <div class="icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <h3>No Classes Enrolled</h3>
+                <p>You are not currently enrolled in any classes. Visit the enrollment page to register for available subjects.</p>
+                <a href="/student/enroll" class="enroll-link">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Go to Enrollment</span>
+                </a>
+            </div>
+            
+            <div th:if="${!#lists.isEmpty(enrollments)}">
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>Subject Code & Description</th>
+                            <th>Units</th>
+                            <th>Faculty/Teacher</th>
+                            <th>Day & Time</th>
+                            <th>Room & Section</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="enrollment : ${enrollments}">
+                            <td>
+                                <div class="subject-info">
+                                    <div class="subject-code" th:text="${enrollment.subject.subjectCode}"></div>
+                                    <div class="subject-desc" th:text="${enrollment.subject.subjectDescription}"></div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="units-badge" th:text="${enrollment.subject.units} + ' units'"></span>
+                            </td>
+                            <td>
+                                <div class="faculty-info">
+                                    <div class="faculty-name" th:text="${enrollment.subjectSchedule.faculty.fullName}"></div>
+                                    <div class="faculty-title">Instructor</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="schedule-info">
+                                    <div class="day-info" th:text="${enrollment.subjectSchedule.dayOfWeek}"></div>
+                                    <div class="time" th:text="${enrollment.subjectSchedule.timeRange}"></div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="location-info">
+                                    <div class="room" th:text="'Room: ' + ${enrollment.subjectSchedule.room}"></div>
+                                    <div class="section" th:text="'Section: ' + ${enrollment.subjectSchedule.sectionCode}"></div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="status-badge" 
+                                      th:text="${enrollment.status}" 
+                                      th:class="${enrollment.status == 'ENROLLED' ? 'status-enrolled' : 
+                                                (enrollment.status == 'COMPLETED' ? 'status-completed' : 'status-other')}"></span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="total-units">
+                    <h3>
+                        <i class="fas fa-calculator"></i>
+                        <span>Total Units Enrolled</span>
+                    </h3>
+                    <p th:text="${#aggregates.sum(enrollments.![subject.units])} + ' units'"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>BMW-SIS Admin - System Settings</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/admin-style.css?v=3.0}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" th:src="@{/js/admin-main.js?v=2.0}"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="profile-section">
+            <div class="profile-avatar">
+                <img src="/BMWlogo.png" alt="BMW Logo" style="width: 60px; height: 60px; border-radius: 50%; object-fit: contain; background: white; padding: 8px;"/>
+            </div>
+            <div class="profile-name" th:text="${admin.firstName + ' ' + admin.lastName}">Administrator</div>
+            <div class="profile-role">System Administrator</div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Main Navigation</div>
+            <div class="nav-buttons">
+                <a href="/admin/dashboard">
+                    <i class="fas fa-chart-line"></i>
+                    Dashboard
+                </a>
+                <a href="/admin/simple-students">
+                    <i class="fas fa-user-graduate"></i>
+                    Students
+                </a>
+                <a href="/admin/faculty">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    Faculty
+                </a>
+            </div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Academic Management</div>
+            <div class="nav-buttons">
+                <a href="/admin/subjects">
+                    <i class="fas fa-book"></i>
+                    Subjects
+                </a>
+                <a href="/admin/schedules">
+                    <i class="fas fa-calendar-alt"></i>
+                    Schedules
+                </a>
+                <a href="/admin/curriculum">
+                    <i class="fas fa-list-alt"></i>
+                    Curriculum
+                </a>
+                <a href="/admin/sections">
+                    <i class="fas fa-building"></i>
+                    Sections
+                </a>
+                <a href="/admin/enrollment">
+                    <i class="fas fa-user-plus"></i>
+                    Enrollment
+                </a>
+            </div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">System</div>
+            <div class="nav-buttons">
+                <a href="/admin/settings" class="active">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </a>
+            </div>
+        </div>
+        
+        <a href="/admin/logout" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            Logout
+        </a>
+    </div>
+    
+    <div class="main-content">
+        <div class="content-header">
+            <div>
+                <h1>
+                    <i class="fas fa-cog"></i>
+                    System Settings
+                </h1>
+                <p>Configure system preferences and administrative options</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="saveAllSettings()">
+                    <i class="fas fa-save"></i>
+                    Save All Settings
+                </button>
+            </div>
+        </div>
+        
+        <!-- Alert Messages -->
+        <div th:if="${success}" class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <span th:text="${success}"></span>
+        </div>
+        <div th:if="${error}" class="alert alert-error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span th:text="${error}"></span>
+        </div>
+        
+        <div class="settings-section">
+            <h2>
+                <i class="fas fa-cogs"></i>
+                General Settings
+            </h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="systemName">System Name</label>
+                    <input type="text" id="systemName" name="systemName" value="BMW Student Information System">
+                </div>
+                <div class="form-group">
+                    <label for="institutionName">Institution Name</label>
+                    <input type="text" id="institutionName" name="institutionName" value="BMW College">
+                </div>
+                <div class="form-group">
+                    <label for="academicYear">Current Academic Year</label>
+                    <input type="text" id="academicYear" name="academicYear" value="2024-2025">
+                </div>
+                <div class="form-group">
+                    <label for="semester">Current Semester</label>
+                    <select id="semester" name="semester">
+                        <option value="1">1st Semester</option>
+                        <option value="2" selected>2nd Semester</option>
+                        <option value="summer">Summer</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h2>
+                <i class="fas fa-user-plus"></i>
+                Enrollment Settings
+            </h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="enrollmentOpen">Enrollment Period</label>
+                    <select id="enrollmentOpen" name="enrollmentOpen">
+                        <option value="true" selected>Open</option>
+                        <option value="false">Closed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="enrollmentStart">Enrollment Start Date</label>
+                    <input type="date" id="enrollmentStart" name="enrollmentStart" value="2024-01-15">
+                </div>
+                <div class="form-group">
+                    <label for="enrollmentEnd">Enrollment End Date</label>
+                    <input type="date" id="enrollmentEnd" name="enrollmentEnd" value="2024-02-15">
+                </div>
+                <div class="form-group">
+                    <label for="maxUnits">Maximum Units per Student</label>
+                    <input type="number" id="maxUnits" name="maxUnits" min="12" max="30" value="24">
+                </div>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h2>
+                <i class="fas fa-graduation-cap"></i>
+                Grade Settings
+            </h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="passingGrade">Passing Grade</label>
+                    <input type="number" id="passingGrade" name="passingGrade" min="60" max="100" value="75">
+                </div>
+                <div class="form-group">
+                    <label for="midtermWeight">Midterm Weight (%)</label>
+                    <input type="number" id="midtermWeight" name="midtermWeight" min="0" max="100" value="40">
+                </div>
+                <div class="form-group">
+                    <label for="finalWeight">Final Weight (%)</label>
+                    <input type="number" id="finalWeight" name="finalWeight" min="0" max="100" value="60">
+                </div>
+                <div class="form-group">
+                    <label for="gradeScale">Grade Scale</label>
+                    <select id="gradeScale" name="gradeScale">
+                        <option value="1.0-5.0">1.0 - 5.0 Scale</option>
+                        <option value="A-F" selected>A-F Scale</option>
+                        <option value="percentage">Percentage Scale</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h2>
+                <i class="fas fa-bell"></i>
+                System Notifications
+            </h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="emailNotifications" checked> 
+                        Enable Email Notifications
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="smsNotifications"> 
+                        Enable SMS Notifications
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="enrollmentNotifications" checked> 
+                        Enrollment Notifications
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="gradeNotifications" checked> 
+                        Grade Release Notifications
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h2>
+                <i class="fas fa-shield-alt"></i>
+                Security Settings
+            </h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="sessionTimeout">Session Timeout (minutes)</label>
+                    <input type="number" id="sessionTimeout" name="sessionTimeout" min="15" max="480" value="60">
+                </div>
+                <div class="form-group">
+                    <label for="passwordMinLength">Minimum Password Length</label>
+                    <input type="number" id="passwordMinLength" name="passwordMinLength" min="6" max="20" value="8">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="requirePasswordChange" checked> 
+                        Require Password Change on First Login
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="twoFactorAuth"> 
+                        Enable Two-Factor Authentication
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Backup & Maintenance</h2>
+            <div class="stats-row">
+                <div class="stat-card" style="cursor: pointer;" onclick="performBackup()">
+                    <h3>💾</h3>
+                    <p>Create Backup</p>
+                    <small>Last backup: 2024-01-15 10:30</small>
+                </div>
+                <div class="stat-card" style="cursor: pointer;" onclick="viewBackups()">
+                    <h3>📂</h3>
+                    <p>View Backups</p>
+                    <small>5 backups available</small>
+                </div>
+                <div class="stat-card" style="cursor: pointer;" onclick="runMaintenance()">
+                    <h3>🔧</h3>
+                    <p>System Maintenance</p>
+                    <small>Optimize database</small>
+                </div>
+                <div class="stat-card" style="cursor: pointer;" onclick="viewLogs()">
+                    <h3>📋</h3>
+                    <p>System Logs</p>
+                    <small>View activity logs</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>User Management</h2>
+            <div class="controls">
+                <button class="btn btn-primary" onclick="addNewAdmin()">➕ Add New Admin</button>
+                <button class="btn btn-info" onclick="viewUserActivity()">👁️ View User Activity</button>
+                <button class="btn btn-warning" onclick="resetPasswords()">🔑 Reset Passwords</button>
+                <button class="btn btn-danger" onclick="lockAccounts()">🔒 Lock Accounts</button>
+            </div>
+            
+            <div style="overflow-x: auto; margin-top: 20px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Name</th>
+                            <th>Role</th>
+                            <th>Last Login</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>admin001</td>
+                            <td>System Administrator</td>
+                            <td><span class="badge badge-danger">Admin</span></td>
+                            <td>2024-01-15 14:30</td>
+                            <td><span class="badge badge-success">Active</span></td>
+                            <td>
+                                <button class="btn btn-info btn-sm" onclick="editUser('admin001')">✏️ Edit</button>
+                                <button class="btn btn-warning btn-sm" onclick="resetUserPassword('admin001')">🔑 Reset</button>
+                                <button class="btn btn-danger btn-sm" onclick="lockUser('admin001')">🔒 Lock</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>FAC001</td>
+                            <td>Dr. John Smith</td>
+                            <td><span class="badge badge-info">Faculty</span></td>
+                            <td>2024-01-15 09:15</td>
+                            <td><span class="badge badge-success">Active</span></td>
+                            <td>
+                                <button class="btn btn-info btn-sm" onclick="editUser('FAC001')">✏️ Edit</button>
+                                <button class="btn btn-warning btn-sm" onclick="resetUserPassword('FAC001')">🔑 Reset</button>
+                                <button class="btn btn-danger btn-sm" onclick="lockUser('FAC001')">🔒 Lock</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2024-001</td>
+                            <td>John Doe</td>
+                            <td><span class="badge badge-success">Student</span></td>
+                            <td>2024-01-15 11:45</td>
+                            <td><span class="badge badge-success">Active</span></td>
+                            <td>
+                                <button class="btn btn-info btn-sm" onclick="editUser('2024-001')">✏️ Edit</button>
+                                <button class="btn btn-warning btn-sm" onclick="resetUserPassword('2024-001')">🔑 Reset</button>
+                                <button class="btn btn-danger btn-sm" onclick="lockUser('2024-001')">🔒 Lock</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>System Information</h2>
+            <div class="stats-row">
+                <div class="stat-card">
+                    <h3>v2.1.0</h3>
+                    <p>System Version</p>
+                </div>
+                <div class="stat-card">
+                    <h3>MySQL 8.0</h3>
+                    <p>Database Version</p>
+                </div>
+                <div class="stat-card">
+                    <h3>99.9%</h3>
+                    <p>System Uptime</p>
+                </div>
+                <div class="stat-card">
+                    <h3>2.1 GB</h3>
+                    <p>Storage Used</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        $(document).ready(function() {
+            // Validate weight percentages
+            $('#midtermWeight, #finalWeight').on('input', function() {
+                validateWeights();
+            });
+        });
+        
+        function validateWeights() {
+            const midterm = parseInt($('#midtermWeight').val()) || 0;
+            const final = parseInt($('#finalWeight').val()) || 0;
+            
+            if (midterm + final !== 100) {
+                $('#midtermWeight, #finalWeight').css('border-color', '#dc3545');
+                showAlert('Midterm and Final weights must total 100%', 'error');
+            } else {
+                $('#midtermWeight, #finalWeight').css('border-color', '#28a745');
+            }
+        }
+        
+        function saveAllSettings() {
+            if (confirm('Are you sure you want to save all settings? This will affect the entire system.')) {
+                showAlert('Saving all settings...', 'info');
+                
+                // Simulate saving process
+                setTimeout(() => {
+                    showAlert('All settings have been saved successfully!', 'success');
+                }, 2000);
+            }
+        }
+        
+        function performBackup() {
+            if (confirm('This will create a full system backup. Continue?')) {
+                showAlert('Creating system backup... This may take several minutes.', 'info');
+                setTimeout(() => {
+                    showAlert('System backup completed successfully!', 'success');
+                }, 5000);
+            }
+        }
+        
+        function viewBackups() {
+            showAlert('Opening backup management...', 'info');
+            // Implementation for viewing backups
+        }
+        
+        function runMaintenance() {
+            if (confirm('System maintenance will temporarily affect system performance. Continue?')) {
+                showAlert('Running system maintenance...', 'info');
+                setTimeout(() => {
+                    showAlert('System maintenance completed successfully!', 'success');
+                }, 3000);
+            }
+        }
+        
+        function viewLogs() {
+            showAlert('Opening system logs...', 'info');
+            // Implementation for viewing logs
+        }
+        
+        function addNewAdmin() {
+            showAlert('Opening admin creation form...', 'info');
+            // Implementation for adding new admin
+        }
+        
+        function viewUserActivity() {
+            showAlert('Loading user activity report...', 'info');
+            // Implementation for user activity
+        }
+        
+        function resetPasswords() {
+            if (confirm('This will reset passwords for all selected users. Continue?')) {
+                showAlert('Resetting user passwords...', 'info');
+                setTimeout(() => {
+                    showAlert('Passwords have been reset successfully!', 'success');
+                }, 2000);
+            }
+        }
+        
+        function lockAccounts() {
+            if (confirm('This will lock selected user accounts. Continue?')) {
+                showAlert('Locking user accounts...', 'info');
+                setTimeout(() => {
+                    showAlert('User accounts have been locked successfully!', 'success');
+                }, 2000);
+            }
+        }
+        
+        function editUser(userId) {
+            showAlert(`Opening edit form for user: ${userId}`, 'info');
+            // Implementation for editing user
+        }
+        
+        function resetUserPassword(userId) {
+            if (confirm(`Reset password for user ${userId}?`)) {
+                showAlert(`Resetting password for user: ${userId}`, 'info');
+                setTimeout(() => {
+                    showAlert('Password reset successfully!', 'success');
+                }, 1000);
+            }
+        }
+        
+        function lockUser(userId) {
+            if (confirm(`Lock account for user ${userId}?`)) {
+                showAlert(`Locking account for user: ${userId}`, 'info');
+                setTimeout(() => {
+                    showAlert('Account locked successfully!', 'success');
+                }, 1000);
+            }
+        }
+        
+        function showAlert(message, type) {
+            const alertClass = type === 'error' ? 'alert-error' : (type === 'success' ? 'alert-success' : 'alert alert-info');
+            const alertHtml = `
+                <div class="alert ${alertClass}" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                    ${message}
+                    <button type="button" class="close" style="position: absolute; right: 10px; top: 5px; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+                </div>
+            `;
+            
+            $('body').append(alertHtml);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                $('.alert').fadeOut(300, function() {
+                    $(this).remove();
+                });
+            }, 5000);
+            
+            // Manual close
+            $('.alert .close').click(function() {
+                $(this).parent().fadeOut(300, function() {
+                    $(this).remove();
+                });
+            });
+        }
+    </script>
+</body>
+</html> 

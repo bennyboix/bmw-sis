@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>My Grades - BMW-SIS</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f4f4;
+            color: #423736;
+        }
+        .header {
+            background: linear-gradient(135deg, #987185 0%, #D6AA9F 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .logo img {
+            height: 40px;
+            width: auto;
+        }
+        .logo i {
+            margin-right: 8px;
+            font-size: 1.2em;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .nav-links a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        .page-header {
+            background: #F4E2D1;
+            padding: 2rem;
+            border-radius: 10px;
+            border: 1px solid #b9b8b8;
+            box-shadow: 2px 2px 8px #bcb6b6;
+            margin-bottom: 2rem;
+        }
+        .page-header h1 {
+            color: #987185;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .grades-container {
+            background: #F4E2D1;
+            border-radius: 10px;
+            border: 1px solid #b9b8b8;
+            box-shadow: 2px 2px 8px #bcb6b6;
+            overflow: hidden;
+        }
+        .grades-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .grades-table th {
+            background: #987185;
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+        .grades-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .grades-table tr:hover {
+            background: #D6AA9F;
+        }
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-passed {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status-ongoing {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status-inc {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .grade-cell {
+            text-align: center;
+            font-weight: 600;
+        }
+        .no-grades {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+        .no-grades .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        @media (max-width: 768px) {
+            .grades-table {
+                font-size: 0.875rem;
+            }
+            .grades-table th,
+            .grades-table td {
+                padding: 0.75rem 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <img src="/BMWlogo.png" alt="BMW Logo" onerror="this.style.display='none'"/>
+                <span>BMW-SIS Student Portal</span>
+            </div>
+            <div class="nav-links">
+                <a href="/student/dashboard">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/student/schedule">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Schedule</span>
+                </a>
+                <a href="/student/enroll">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Enrollment</span>
+                </a>
+                <a href="/student/logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>
+                <i class="fas fa-chart-line"></i>
+                <span>My Grades</span>
+            </h1>
+            <p th:text="'Academic performance for ' + ${student.firstName} + ' ' + ${student.lastName} + ' (' + ${student.fullSection} + ')'"></p>
+        </div>
+
+        <div class="grades-container">
+            <div th:if="${#lists.isEmpty(grades)}" class="no-grades">
+                <div class="icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>No Grades Available</h3>
+                <p>You don't have any grades recorded yet. Grades will appear here once they are entered by your instructors.</p>
+            </div>
+            
+            <table th:if="${!#lists.isEmpty(grades)}" class="grades-table">
+                <thead>
+                    <tr>
+                        <th>Subject Code</th>
+                        <th>Subject Description</th>
+                        <th>Faculty Name</th>
+                        <th>Section Code</th>
+                        <th>Midterm</th>
+                        <th>Finals</th>
+                        <th>Final Rating</th>
+                        <th>Status</th>
+                        <th>Semester</th>
+                        <th>Academic Year</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="grade : ${grades}">
+                        <td th:text="${grade.subject.subjectCode}"></td>
+                        <td th:text="${grade.subject.subjectDescription}"></td>
+                        <td th:text="${grade.faculty.fullName}"></td>
+                        <td th:text="${grade.sectionCode}"></td>
+                        <td class="grade-cell" th:text="${grade.midtermGrade != null ? grade.midtermGrade : '-'}"></td>
+                        <td class="grade-cell" th:text="${grade.finalGrade != null ? grade.finalGrade : '-'}"></td>
+                        <td class="grade-cell" th:text="${grade.finalRating != null ? grade.finalRating : '-'}"></td>
+                        <td>
+                            <span class="status-badge" 
+                                  th:classappend="${grade.status == 'PASSED' ? 'status-passed' : 
+                                                  (grade.status == 'FAILED' ? 'status-failed' : 
+                                                  (grade.status == 'ONGOING' ? 'status-ongoing' : 'status-inc'))}"
+                                  th:text="${grade.status}"></span>
+                        </td>
+                        <td th:text="${grade.semester}"></td>
+                        <td th:text="${grade.academicYear}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html> 

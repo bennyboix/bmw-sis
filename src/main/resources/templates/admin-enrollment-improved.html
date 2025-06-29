@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>BMW-SIS Admin - Enrollment Management</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/admin-style.css?v=3.0}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .student-enrollment-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border-left: 4px solid #007bff;
+        }
+
+        .student-enrollment-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .student-card-header {
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .student-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .student-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .student-details h3 {
+            margin: 0;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .student-details .student-meta {
+            color: #666;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .enrollment-summary {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .enrollment-count {
+            background: #007bff;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .expand-icon {
+            transition: transform 0.3s ease;
+            color: #007bff;
+            font-size: 20px;
+        }
+
+        .expand-icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        .student-enrollments {
+            display: none;
+            padding: 0 20px 20px 20px;
+        }
+
+        .enrollment-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid #28a745;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .enrollment-item:hover {
+            background: #e9ecef;
+            transform: translateX(4px);
+        }
+
+        .enrollment-item.pending {
+            border-left-color: #ffc107;
+        }
+
+        .enrollment-item.dropped {
+            border-left-color: #dc3545;
+            opacity: 0.7;
+        }
+
+        .subject-info {
+            flex: 1;
+        }
+
+        .subject-code {
+            font-weight: bold;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .subject-name {
+            color: #666;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .schedule-info {
+            color: #666;
+            font-size: 13px;
+            margin-top: 6px;
+        }
+
+        .enrollment-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+
+        .btn-edit {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #138496;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-enrolled {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-dropped {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .search-controls {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 300px;
+            padding: 12px 16px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s ease;
+        }
+
+        .search-input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        .filter-select {
+            padding: 12px 16px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            min-width: 150px;
+        }
+
+        .no-enrollments {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            color: #dee2e6;
+            margin-bottom: 20px;
+        }
+
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="profile-section">
+            <div class="profile-avatar">
+                <img src="/BMWlogo.png" alt="BMW Logo" style="width: 60px; height: 60px; border-radius: 50%; object-fit: contain; background: white; padding: 8px;"/>
+            </div>
+            <div class="profile-name" th:text="${admin.firstName + ' ' + admin.lastName}">Administrator</div>
+            <div class="profile-role">System Administrator</div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Main Navigation</div>
+            <div class="nav-buttons">
+                <a href="/admin/dashboard">
+                    <i class="fas fa-chart-line nav-icon"></i>
+                    Dashboard
+                </a>
+                <a href="/admin/simple-students">
+                    <i class="fas fa-user-graduate nav-icon"></i>
+                    Students
+                </a>
+                <a href="/admin/faculty">
+                    <i class="fas fa-chalkboard-teacher nav-icon"></i>
+                    Faculty
+                </a>
+            </div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Academic Management</div>
+            <div class="nav-buttons">
+                <a href="/admin/subjects">Subjects</a>
+                <a href="/admin/schedules">Schedules</a>
+                <a href="/admin/curriculum">Curriculum</a>
+                <a href="/admin/sections"> Sections</a>
+                <a href="/admin/enrollment" class="active"> Enrollment</a>
+            </div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">System</div>
+            <div class="nav-buttons">
+                <a href="/admin/settings"> Settings</a>
+            </div>
+        </div>
+        
+        <a href="/admin/logout" class="logout-btn"> Logout</a>
+    </div>
+    
+    <div class="main-content">
+        <div class="header">
+            <h1><i class="fas fa-clipboard-list"></i> Enrollment Management</h1>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-success" onclick="openAddEnrollmentModal()">
+                    <i class="fas fa-plus"></i> Add Enrollment
+                </button>
+                <button class="btn btn-info" onclick="openCurriculumAssignmentModal()">
+                    <i class="fas fa-graduation-cap"></i> Assign Curriculum
+                </button>
+            </div>
+        </div>
+        
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        
+        <!-- Quick Statistics -->
+        <div class="quick-stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalStudents">0</div>
+                <div class="stat-label">Students with Enrollments</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalEnrollments">0</div>
+                <div class="stat-label">Total Enrollments</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeEnrollments">0</div>
+                <div class="stat-label">Active Enrollments</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="pendingEnrollments">0</div>
+                <div class="stat-label">Pending Enrollments</div>
+            </div>
+        </div>
+        
+        <!-- Search and Filter Controls -->
+        <div class="search-controls">
+            <input type="text" class="search-input" id="searchInput" 
+                   placeholder="🔍 Search by student name, ID, or subject...">
+            <select class="filter-select" id="statusFilter" onchange="filterEnrollments()">
+                <option value="">All Status</option>
+                <option value="ENROLLED">Enrolled</option>
+                <option value="PENDING">Pending</option>
+                <option value="DROPPED">Dropped</option>
+            </select>
+            <select class="filter-select" id="yearFilter" onchange="filterEnrollments()">
+                <option value="">All Years</option>
+                <option value="1">1st Year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">4th Year</option>
+            </select>
+            <select class="filter-select" id="courseFilter" onchange="filterEnrollments()">
+                <option value="">All Courses</option>
+                <option value="IT">Information Technology</option>
+                <option value="CS">Computer Science</option>
+                <option value="IS">Information Systems</option>
+            </select>
+            <button class="btn btn-primary" onclick="expandAllStudents()">
+                <i class="fas fa-expand-arrows-alt"></i> Expand All
+            </button>
+            <button class="btn btn-secondary" onclick="collapseAllStudents()">
+                <i class="fas fa-compress-arrows-alt"></i> Collapse All
+            </button>
+        </div>
+        
+        <!-- Student Enrollment Cards -->
+        <div id="enrollmentContainer">
+            <div th:if="${studentEnrollments == null or studentEnrollments.empty}" class="empty-state">
+                <i class="fas fa-clipboard-list"></i>
+                <h3>No Enrollment Data Found</h3>
+                <p>Students will appear here once they have enrollments assigned.</p>
+                <button class="btn btn-primary" onclick="openAddEnrollmentModal()">
+                    <i class="fas fa-plus"></i> Add First Enrollment
+                </button>
+            </div>
+            
+            <div th:each="entry : ${studentEnrollments}" class="student-enrollment-card" 
+                 th:data-student-id="${entry.key.id}"
+                 th:data-student-name="${entry.key.firstName + ' ' + entry.key.lastName}"
+                 th:data-year="${entry.key.yearLevel}"
+                 th:data-course="${entry.key.course}">
+                
+                <div class="student-card-header" onclick="toggleStudentEnrollments(this)">
+                    <div class="student-info">
+                        <div class="student-avatar" th:text="${entry.key.firstName.substring(0,1) + entry.key.lastName.substring(0,1)}">JD</div>
+                        <div class="student-details">
+                            <h3 th:text="${entry.key.firstName + ' ' + entry.key.lastName}">John Doe</h3>
+                            <div class="student-meta">
+                                <span th:text="${entry.key.studentId}">2024-001</span> • 
+                                <span th:text="${entry.key.course}">Information Technology</span> • 
+                                Year <span th:text="${entry.key.yearLevel}">1</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="enrollment-summary">
+                        <div class="enrollment-count" th:text="${entry.value.size() + ' enrollments'}">3 enrollments</div>
+                        <i class="fas fa-chevron-down expand-icon"></i>
+                    </div>
+                </div>
+                
+                <div class="student-enrollments">
+                    <div th:if="${entry.value.empty}" class="no-enrollments">
+                        No enrollments found for this student.
+                    </div>
+                    
+                    <div th:each="enrollment : ${entry.value}" 
+                         class="enrollment-item"
+                         th:classappend="${enrollment.status.toLowerCase()}"
+                         th:data-status="${enrollment.status}">
+                        
+                        <div class="subject-info">
+                            <div class="subject-code" th:text="${enrollment.subject != null ? enrollment.subject.subjectCode : 'N/A'}">IT-101</div>
+                            <div class="subject-name" th:text="${enrollment.subject != null ? enrollment.subject.subjectName : 'Unknown Subject'}">Introduction to Programming</div>
+                            <div class="schedule-info">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span th:text="${enrollment.subjectSchedule != null ? (enrollment.subjectSchedule.dayOfWeek + ' ' + enrollment.subjectSchedule.startTime + '-' + enrollment.subjectSchedule.endTime) : 'No schedule'}">Monday 8:00-11:00</span>
+                                <span th:if="${enrollment.subjectSchedule != null and enrollment.subjectSchedule.room != null}">
+                                    • <i class="fas fa-door-open"></i> <span th:text="${enrollment.subjectSchedule.room}">Room 101</span>
+                                </span>
+                                <span th:if="${enrollment.subjectSchedule != null and enrollment.subjectSchedule.faculty != null}">
+                                    • <i class="fas fa-user-tie"></i> <span th:text="${enrollment.subjectSchedule.faculty.firstName + ' ' + enrollment.subjectSchedule.faculty.lastName}">Dr. Smith</span>
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span class="status-badge" 
+                                  th:classappend="'status-' + ${enrollment.status.toLowerCase()}"
+                                  th:text="${enrollment.status}">ENROLLED</span>
+                            
+                            <div class="enrollment-actions">
+                                <button class="btn-icon btn-edit" 
+                                        th:onclick="'editEnrollment(' + ${enrollment.id} + ')'"
+                                        title="Edit Enrollment">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon btn-delete" 
+                                        th:onclick="'deleteEnrollment(' + ${enrollment.id} + ')'"
+                                        title="Delete Enrollment">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add/Edit Enrollment Modal -->
+    <div id="enrollmentModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Add New Enrollment</h2>
+            <form id="enrollmentForm" method="post" th:action="@{/admin/enrollment/add}">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="studentId">Student</label>
+                        <select id="studentId" name="studentId" required>
+                            <option value="">Select Student</option>
+                            <option th:each="student : ${students}" th:value="${student.id}" 
+                                    th:text="${student.studentId + ' - ' + student.firstName + ' ' + student.lastName + ' (' + student.course + ')'}">
+                                2024-001 - John Doe (IT)
+                            </option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="scheduleId">Schedule</label>
+                        <select id="scheduleId" name="scheduleId" required>
+                            <option value="">Select Schedule</option>
+                            <option th:each="schedule : ${schedules}" 
+                                    th:value="${schedule.id}" 
+                                    th:text="${(schedule.subject != null ? schedule.subject.subjectCode : 'N/A') + ' - ' + schedule.dayOfWeek + ' ' + schedule.startTime + ' (' + schedule.sectionCode + ')'}">
+                                IT-101 - Mon 8:00 (IT-1A)
+                            </option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select id="status" name="status" required>
+                            <option value="">Select Status</option>
+                            <option value="ENROLLED">Enrolled</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="DROPPED">Dropped</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Enrollment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Curriculum Assignment Modal -->
+    <div id="curriculumModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCurriculumModal()">&times;</span>
+            <h2>Assign Curriculum Package</h2>
+            <form method="post" action="/admin/enrollment/assign-curriculum">
+                <div class="form-group">
+                    <label for="assignStudentId">Select Student:</label>
+                    <select id="assignStudentId" name="studentId" required>
+                        <option value="">Select Student</option>
+                        <option th:each="student : ${students}" th:value="${student.id}" 
+                                th:text="${student.studentId + ' - ' + student.firstName + ' ' + student.lastName + ' (' + student.course + ', Year ' + student.yearLevel + ')'}">
+                            2024-001 - John Doe (IT, Year 1)
+                        </option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="assignCurriculumId">Select Curriculum Package:</label>
+                    <select id="assignCurriculumId" name="curriculumId" required>
+                        <option value="">Select Curriculum Package</option>
+                        <option th:each="curriculum : ${curriculums}" th:value="${curriculum.id}" 
+                                th:text="${curriculum.curriculumCode + ' - ' + curriculum.curriculumName + ' (' + curriculum.course + ', Year ' + curriculum.yearLevel + ')'}">
+                            BSIT-1Y-1S - Core Subjects (IT, Year 1)
+                        </option>
+                    </select>
+                </div>
+                
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeCurriculumModal()">Cancel</button>
+                    <button type="submit" class="btn btn-success">Assign Package</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        $(document).ready(function() {
+            calculateStats();
+            setupSearch();
+        });
+        
+        function toggleStudentEnrollments(header) {
+            const card = header.closest('.student-enrollment-card');
+            const enrollments = card.querySelector('.student-enrollments');
+            const icon = header.querySelector('.expand-icon');
+            
+            if (enrollments.style.display === 'none' || enrollments.style.display === '') {
+                enrollments.style.display = 'block';
+                icon.classList.add('rotated');
+            } else {
+                enrollments.style.display = 'none';
+                icon.classList.remove('rotated');
+            }
+        }
+        
+        function expandAllStudents() {
+            $('.student-enrollments').show();
+            $('.expand-icon').addClass('rotated');
+        }
+        
+        function collapseAllStudents() {
+            $('.student-enrollments').hide();
+            $('.expand-icon').removeClass('rotated');
+        }
+        
+        function setupSearch() {
+            $('#searchInput').on('keyup', function() {
+                filterEnrollments();
+            });
+        }
+        
+        function filterEnrollments() {
+            const searchValue = $('#searchInput').val().toLowerCase();
+            const statusFilter = $('#statusFilter').val();
+            const yearFilter = $('#yearFilter').val();
+            const courseFilter = $('#courseFilter').val();
+            
+            $('.student-enrollment-card').each(function() {
+                const card = $(this);
+                const studentName = card.data('student-name').toLowerCase();
+                const studentId = card.attr('data-student-id');
+                const year = card.data('year').toString();
+                const course = card.data('course');
+                
+                let showCard = true;
+                
+                // Search filter
+                if (searchValue && !studentName.includes(searchValue) && !studentId.includes(searchValue)) {
+                    // Also check subjects in enrollments
+                    const hasMatchingSubject = card.find('.subject-code, .subject-name').toArray().some(el => 
+                        $(el).text().toLowerCase().includes(searchValue)
+                    );
+                    if (!hasMatchingSubject) {
+                        showCard = false;
+                    }
+                }
+                
+                // Year filter
+                if (yearFilter && year !== yearFilter) {
+                    showCard = false;
+                }
+                
+                // Course filter
+                if (courseFilter && course !== courseFilter) {
+                    showCard = false;
+                }
+                
+                // Status filter - check if any enrollment matches
+                if (statusFilter) {
+                    const hasMatchingStatus = card.find('.enrollment-item[data-status="' + statusFilter + '"]').length > 0;
+                    if (!hasMatchingStatus) {
+                        showCard = false;
+                    }
+                }
+                
+                card.toggle(showCard);
+            });
+        }
+        
+        function calculateStats() {
+            const totalStudents = $('.student-enrollment-card').length;
+            let totalEnrollments = 0;
+            let activeEnrollments = 0;
+            let pendingEnrollments = 0;
+            
+            $('.enrollment-item').each(function() {
+                totalEnrollments++;
+                const status = $(this).data('status');
+                if (status === 'ENROLLED') {
+                    activeEnrollments++;
+                } else if (status === 'PENDING') {
+                    pendingEnrollments++;
+                }
+            });
+            
+            $('#totalStudents').text(totalStudents);
+            $('#totalEnrollments').text(totalEnrollments);
+            $('#activeEnrollments').text(activeEnrollments);
+            $('#pendingEnrollments').text(pendingEnrollments);
+        }
+        
+        function openAddEnrollmentModal() {
+            $('#modalTitle').text('Add New Enrollment');
+            $('#enrollmentForm').attr('action', '/admin/enrollment/add');
+            $('#enrollmentForm')[0].reset();
+            $('#enrollmentModal').show();
+        }
+        
+        function openCurriculumAssignmentModal() {
+            $('#curriculumModal').show();
+        }
+        
+        function editEnrollment(id) {
+            $('#modalTitle').text('Edit Enrollment');
+            $('#enrollmentForm').attr('action', '/admin/enrollment/update/' + id);
+            $('#enrollmentModal').show();
+        }
+        
+        function deleteEnrollment(id) {
+            if (confirm('Are you sure you want to delete this enrollment? This action cannot be undone.')) {
+                $.ajax({
+                    url: '/admin/enrollment/delete/' + id,
+                    type: 'DELETE',
+                    success: function(response) {
+                        alert('Enrollment deleted successfully!');
+                        location.reload();
+                    },
+                    error: function(xhr, status, error) {
+                        alert('Error deleting enrollment: ' + xhr.responseText);
+                    }
+                });
+            }
+        }
+        
+        function closeModal() {
+            $('#enrollmentModal').hide();
+        }
+        
+        function closeCurriculumModal() {
+            $('#curriculumModal').hide();
+        }
+        
+        // Close modals when clicking outside
+        $(window).click(function(event) {
+            if (event.target.classList.contains('modal')) {
+                $(event.target).hide();
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>BMW-SIS Admin - Grade Management</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/admin-style.css?v=3.0}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" th:src="@{/js/admin-main.js}"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="profile-section">
+            <div class="profile-avatar">
+                <img src="/BMWlogo.png" alt="BMW Logo" style="width: 60px; height: 60px; border-radius: 50%; object-fit: contain; background: white; padding: 8px;"/>
+            </div>
+            <div class="profile-name" th:text="${admin.firstName + ' ' + admin.lastName}">Administrator</div>
+            <div class="profile-role">System Administrator</div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Main Navigation</div>
+        <div class="nav-buttons">
+            <a href="/admin/dashboard"> Dashboard</a>
+                            <a href="/admin/simple-students"> Students</a>
+            <a href="/admin/faculty"> Faculty</a>
+            </div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Academic Management</div>
+            <div class="nav-buttons">
+            <a href="/admin/subjects"> Subjects</a>
+            <a href="/admin/schedules"> Schedules</a>
+            <a href="/admin/curriculum"> Curriculum</a>
+            <a href="/admin/sections"> Sections</a>
+            <a href="/admin/enrollment"> Enrollment</a>
+            </div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">System</div>
+            <div class="nav-buttons">
+            <a href="/admin/settings"> Settings</a>
+            </div>
+        </div>
+        <a href="/admin/logout" class="logout-btn"> Logout</a>
+    </div>
+    
+    <div class="main-content">
+        <div class="header">
+            <h1>Grade Management</h1>
+            <button class="btn btn-primary" onclick="openAddGradeModal()">➕ Add New Grade</button>
+        </div>
+        
+        <div class="alert alert-warning">
+            <h3>📢 Notice: Grade Management Has Moved</h3>
+            <p>Grade management functionality has been moved to the Faculty area. Faculty members can now manage grades directly from their dashboard.</p>
+            <p><strong>Admin users:</strong> Please use the new <a href="/admin/curriculum">📋 Curriculum</a> and <a href="/admin/sections">🏫 Section Management</a> features instead.</p>
+            <p><strong>Faculty users:</strong> <a href="/faculty/login">Login to Faculty Area</a> to manage grades.</p>
+        </div>
+        
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        
+        <div class="stats-row">
+            <div class="stat-card">
+                <h3 th:text="${grades.size()}">0</h3>
+                <p>Total Grades</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="passedGrades">0</h3>
+                <p>Passed Students</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="failedGrades">0</h3>
+                <p>Failed Students</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="averageGrade">0.0</h3>
+                <p>Average Grade</p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Grade Records</h2>
+            
+            <div class="controls">
+                <input type="text" class="search-box" id="searchInput" placeholder="🔍 Search by student name, subject, or grade...">
+                <select class="form-control" id="subjectFilter" onchange="filterBySubject()">
+                    <option value="">All Subjects</option>
+                    <option th:each="subject : ${subjects}" th:value="${subject.id}" th:text="${subject.subjectCode + ' - ' + subject.subjectName}">IT-101 - Programming</option>
+                </select>
+                <button class="btn btn-info" onclick="exportToCSV()">📊 Export CSV</button>
+                <button class="btn btn-success" onclick="refreshTable()">🔄 Refresh</button>
+            </div>
+            
+            <div th:if="${grades.empty}" class="empty-state">
+                <p>No grade records found.</p>
+            </div>
+            
+            <div th:unless="${grades.empty}">
+                <div style="overflow-x: auto; max-height: 600px;">
+                    <table id="gradesTable">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Subject</th>
+                                <th>Midterm</th>
+                                <th>Final</th>
+                                <th>Final Grade</th>
+                                <th>Rating</th>
+                                <th>Status</th>
+                                <th>Date Recorded</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="grade : ${grades}" th:data-subject="${grade.subject.id}">
+                                <td>
+                                    <div th:text="${grade.student.firstName + ' ' + grade.student.lastName}">John Doe</div>
+                                    <small th:text="${grade.student.studentId}">2024-001</small>
+                                </td>
+                                <td>
+                                    <div th:text="${grade.subject.subjectCode}">IT-101</div>
+                                    <small th:text="${grade.subject.subjectName}">Programming</small>
+                                </td>
+                                <td th:text="${grade.midtermGrade ?: 'N/A'}">85</td>
+                                <td th:text="${grade.finalGrade ?: 'N/A'}">90</td>
+                                <td th:text="${grade.finalRating ?: 'N/A'}">87.5</td>
+                                <td>
+                                    <span class="badge" 
+                                          th:classappend="${grade.finalRating != null and grade.finalRating >= 75} ? 'badge-success' : 'badge-danger'"
+                                          th:text="${grade.finalRating != null and grade.finalRating >= 75} ? 'PASSED' : 'FAILED'">PASSED</span>
+                                </td>
+                                <td th:text="${grade.status ?: 'Recorded'}">Recorded</td>
+                                <td th:text="${#temporals.format(grade.dateRecorded, 'yyyy-MM-dd')}">2024-01-15</td>
+                                <td>
+                                    <button class="btn btn-info btn-sm" th:onclick="'viewGrade(' + ${grade.id} + ')'">👁️ View</button>
+                                    <button class="btn btn-primary btn-sm" th:onclick="'editGrade(' + ${grade.id} + ')'">✏️ Edit</button>
+                                    <button class="btn btn-danger btn-sm" th:onclick="'deleteGrade(' + ${grade.id} + ')'">🗑️ Delete</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add/Edit Grade Modal -->
+    <div id="gradeModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Add New Grade</h2>
+            <form id="gradeForm" method="post" th:action="@{/admin/grades/add}">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="studentId">Student</label>
+                        <select id="studentId" name="studentId" required>
+                            <option value="">Select Student</option>
+                            <option th:each="student : ${students}" th:value="${student.id}" th:text="${student.studentId + ' - ' + student.firstName + ' ' + student.lastName}">2024-001 - John Doe</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="subjectId">Subject</label>
+                        <select id="subjectId" name="subjectId" required>
+                            <option value="">Select Subject</option>
+                            <option th:each="subject : ${subjects}" th:value="${subject.id}" th:text="${subject.subjectCode + ' - ' + subject.subjectName}">IT-101 - Programming</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="midtermGrade">Midterm Grade</label>
+                        <input type="number" id="midtermGrade" name="midtermGrade" min="0" max="100" step="0.1" placeholder="e.g., 85.5">
+                    </div>
+                    <div class="form-group">
+                        <label for="finalGrade">Final Grade</label>
+                        <input type="number" id="finalGrade" name="finalGrade" min="0" max="100" step="0.1" placeholder="e.g., 90.0">
+                    </div>
+                    <div class="form-group">
+                        <label for="finalRating">Final Rating</label>
+                        <input type="number" id="finalRating" name="finalRating" min="0" max="100" step="0.1" placeholder="Calculated automatically" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select id="status" name="status" required>
+                            <option value="">Select Status</option>
+                            <option value="Recorded">Recorded</option>
+                            <option value="Final">Final</option>
+                            <option value="Pending">Pending</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="remarks">Remarks</label>
+                    <textarea id="remarks" name="remarks" rows="3" placeholder="Additional comments or remarks..."></textarea>
+                </div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Grade</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        $(document).ready(function() {
+            calculateGradeStats();
+            
+            // Auto-calculate final rating
+            $('#midtermGrade, #finalGrade').on('input', function() {
+                calculateFinalRating();
+            });
+        });
+        
+        function openAddGradeModal() {
+            $('#modalTitle').text('Add New Grade');
+            $('#gradeForm').attr('action', '/admin/grades/add');
+            $('#gradeForm')[0].reset();
+            $('#gradeModal').show();
+        }
+        
+        function viewGrade(id) {
+            // Implementation for viewing grade details
+            alert('View grade functionality - ID: ' + id);
+        }
+        
+        function editGrade(id) {
+            $('#modalTitle').text('Edit Grade');
+            $('#gradeForm').attr('action', '/admin/grades/update/' + id);
+            // Fetch and populate grade data
+            $('#gradeModal').show();
+        }
+        
+        function deleteGrade(id) {
+            if (confirm('Are you sure you want to delete this grade record?')) {
+                // AJAX delete implementation
+                alert('Delete grade functionality - ID: ' + id);
+            }
+        }
+        
+        function filterBySubject() {
+            const subjectId = $('#subjectFilter').val();
+            const rows = $('#gradesTable tbody tr');
+            
+            rows.each(function() {
+                if (subjectId === '' || $(this).data('subject') == subjectId) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
+        
+        function calculateFinalRating() {
+            const midterm = parseFloat($('#midtermGrade').val()) || 0;
+            const final = parseFloat($('#finalGrade').val()) || 0;
+            
+            if (midterm > 0 && final > 0) {
+                const finalRating = (midterm * 0.4) + (final * 0.6);
+                $('#finalRating').val(finalRating.toFixed(2));
+            }
+        }
+        
+        function calculateGradeStats() {
+            const rows = $('#gradesTable tbody tr');
+            let passed = 0, failed = 0, totalGrades = 0, sumGrades = 0;
+            
+            rows.each(function() {
+                const badge = $(this).find('.badge');
+                if (badge.hasClass('badge-success')) {
+                    passed++;
+                } else if (badge.hasClass('badge-danger')) {
+                    failed++;
+                }
+                
+                const gradeText = $(this).find('td').eq(4).text().trim();
+                const grade = parseFloat(gradeText);
+                if (!isNaN(grade)) {
+                    totalGrades++;
+                    sumGrades += grade;
+                }
+            });
+            
+            $('#passedGrades').text(passed);
+            $('#failedGrades').text(failed);
+            $('#averageGrade').text(totalGrades > 0 ? (sumGrades / totalGrades).toFixed(2) : '0.0');
+        }
+        
+        // Search functionality
+        $('#searchInput').on('keyup', function() {
+            const searchValue = $(this).val().toLowerCase();
+            const rows = $('#gradesTable tbody tr');
+            
+            rows.each(function() {
+                const text = $(this).text().toLowerCase();
+                $(this).toggle(text.includes(searchValue));
+            });
+        });
+    </script>
+</body>
+</html> 

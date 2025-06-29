@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Schedule - BMW SIS Faculty</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/admin-style.css?v=3.0}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Faculty-specific color overrides */
+        .sidebar {
+            background: linear-gradient(135deg, #8B6F7D 0%, #7A5F6C 25%, #987185 50%, #8B6F7D 75%, #7A5F6C 100%);
+            border-right: 3px solid #D6AA9F;
+        }
+        
+        .profile-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            color: white;
+        }
+        
+        .profile-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: white;
+        }
+        
+        .profile-role {
+            font-size: 0.9em;
+            opacity: 0.8;
+            color: #e8f4f8;
+        }
+        
+        .nav-section {
+            margin: 30px 20px 20px;
+        }
+        
+        .nav-section-title {
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .nav-buttons a {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-buttons a:hover,
+        .nav-buttons a.active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .nav-icon {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .logout-btn {
+            margin: auto 20px 20px;
+            padding: 12px 15px;
+            background: rgba(220, 53, 69, 0.8);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(220, 53, 69, 1);
+            transform: translateY(-2px);
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #8B6F7D 0%, #987185 100%);
+            color: white;
+            border: none;
+        }
+        
+        .stat-icon {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .stat-value {
+            color: white;
+            font-weight: 700;
+        }
+        
+        .stat-label {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .content-header h1 {
+            background: linear-gradient(135deg, #8B6F7D 0%, #987185 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #8B6F7D 0%, #987185 100%);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #7A5F6C 0%, #8B6F7D 100%);
+            transform: translateY(-2px);
+        }
+        
+        .section h2 {
+            color: #8B6F7D;
+            border-bottom-color: #8B6F7D;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #8B6F7D 0%, #987185 100%);
+        }
+        
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: 100px repeat(7, 1fr);
+            gap: 2px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .time-slot {
+            background: linear-gradient(135deg, #8B6F7D 0%, #987185 100%);
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+        
+        .day-header {
+            background: linear-gradient(135deg, #8B6F7D 0%, #987185 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: 700;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+        
+        .schedule-cell {
+            background: white;
+            border-radius: 8px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .schedule-cell:hover {
+            background: #f8f9fa;
+            transform: scale(1.02);
+        }
+        
+        .class-block {
+            background: linear-gradient(135deg, #8B6F7D 0%, #987185 100%);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(139, 111, 125, 0.3);
+        }
+        
+        .class-block:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(139, 111, 125, 0.4);
+        }
+        
+        .class-code {
+            font-weight: 700;
+            font-size: 0.9em;
+            margin-bottom: 3px;
+        }
+        
+        .class-room {
+            font-size: 0.8em;
+            opacity: 0.9;
+        }
+        
+        .schedule-view-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .view-btn {
+            padding: 10px 20px;
+            border: 2px solid #8B6F7D;
+            background: white;
+            color: #8B6F7D;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .view-btn.active {
+            background: linear-gradient(135deg, #8B6F7D 0%, #987185 100%);
+            color: white;
+        }
+        
+        .view-btn:hover {
+            background: linear-gradient(135deg, #8B6F7D 0%, #987185 100%);
+            color: white;
+        }
+        
+        .today-schedule {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .today-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f8f9fa;
+        }
+        
+        .today-date {
+            background: linear-gradient(135deg, #8B6F7D 0%, #987185 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            text-align: center;
+            min-width: 120px;
+        }
+        
+        .today-info h3 {
+            margin: 0 0 5px 0;
+            color: #8B6F7D;
+            font-size: 1.4em;
+        }
+        
+        .today-info p {
+            margin: 0;
+            color: #666;
+        }
+        
+        .class-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #8B6F7D;
+            transition: all 0.3s ease;
+        }
+        
+        .timeline-item:hover {
+            background: #e8f4f8;
+            transform: translateX(5px);
+        }
+        
+        .timeline-time {
+            background: linear-gradient(135deg, #8B6F7D 0%, #987185 100%);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .timeline-content {
+            flex: 1;
+        }
+        
+        .timeline-subject {
+            font-weight: 700;
+            color: #333;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+        
+        .timeline-details {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .timeline-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .upcoming-classes {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .upcoming-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+        
+        .upcoming-item:hover {
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .upcoming-item:last-child {
+            border-bottom: none;
+        }
+        
+        .upcoming-time {
+            background: linear-gradient(135deg, #8B6F7D 0%, #987185 100%);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9em;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .upcoming-content {
+            flex: 1;
+        }
+        
+        .upcoming-subject {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        
+        .upcoming-room {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #495057;
+        }
+        
+        .empty-state p {
+            max-width: 500px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .schedule-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .schedule-item {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: grid;
+            grid-template-columns: 100px 120px 1fr 100px 120px;
+            gap: 20px;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .schedule-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        
+        .schedule-day {
+            font-weight: 700;
+            color: #8B6F7D;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+        
+        .schedule-time {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9em;
+        }
+        
+        .schedule-subject {
+            flex: 1;
+        }
+        
+        .subject-code {
+            font-weight: 700;
+            color: #333;
+            font-size: 1.1em;
+            margin-bottom: 3px;
+        }
+        
+        .subject-name {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .schedule-room {
+            font-weight: 600;
+            color: #987185;
+            text-align: center;
+        }
+        
+        .schedule-actions {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <span>BMW SIS</span>
+            </div>
+            <div class="logo-subtitle">Faculty Portal</div>
+        </div>
+        
+        <!-- Profile Section -->
+        <div class="profile-section">
+            <div class="profile-avatar">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="profile-name" th:text="${faculty.firstName + ' ' + faculty.lastName}">Faculty Name</div>
+            <div class="profile-role" th:text="${faculty.facultyId}">Faculty ID</div>
+        </div>
+        
+        <!-- Navigation -->
+        <div class="nav-section">
+            <div class="nav-section-title">Main Menu</div>
+            <div class="nav-buttons">
+                <a href="/faculty/dashboard">
+                    <i class="fas fa-tachometer-alt nav-icon"></i>
+                    Dashboard
+                </a>
+                <a href="/faculty/classes">
+                    <i class="fas fa-chalkboard-teacher nav-icon"></i>
+                    My Classes
+                </a>
+                <a href="/faculty/grades">
+                    <i class="fas fa-clipboard-list nav-icon"></i>
+                    Manage Grades
+                </a>
+                <a href="/faculty/students">
+                    <i class="fas fa-user-graduate nav-icon"></i>
+                    Students
+                </a>
+                <a href="/faculty/schedule" class="active">
+                    <i class="fas fa-calendar-alt nav-icon"></i>
+                    Schedule
+                </a>
+            </div>
+        </div>
+        
+        <a href="/faculty/logout" class="logout-btn">
+            <i class="fas fa-sign-out-alt" style="margin-right: 8px;"></i>
+            Logout
+        </a>
+    </div>
+    
+    <div class="main-content">
+        <!-- Header Section -->
+        <div class="content-header">
+            <div class="header-content">
+                <h1><i class="fas fa-calendar-alt"></i> My Schedule</h1>
+                <p class="header-description">View your weekly teaching schedule and manage your class timetable.</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="exportSchedule()">
+                    <i class="fas fa-file-export"></i> Export Schedule
+                </button>
+            </div>
+        </div>
+        
+        <!-- Alerts -->
+        <div th:if="${success}" class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <span th:text="${success}"></span>
+        </div>
+        <div th:if="${error}" class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span th:text="${error}"></span>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" th:text="${schedules != null ? schedules.size() : 0}">0</div>
+                    <div class="stat-label">Total Classes</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" th:text="${schedules != null ? schedules.size() * 1.5 : 0}">0</div>
+                    <div class="stat-label">Teaching Hours</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" th:text="${schedules != null and !schedules.empty ? 5 : 0}">0</div>
+                    <div class="stat-label">Teaching Days</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-door-open"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" th:text="${schedules != null and !schedules.empty ? 3 : 0}">0</div>
+                    <div class="stat-label">Different Rooms</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Schedule View Toggle -->
+        <div class="schedule-view-toggle">
+            <button class="view-btn active" onclick="showWeeklyView()">
+                <i class="fas fa-calendar-week"></i> Weekly View
+            </button>
+            <button class="view-btn" onclick="showDailyView()">
+                <i class="fas fa-calendar-day"></i> Today's Schedule
+            </button>
+            <button class="view-btn" onclick="showUpcomingView()">
+                <i class="fas fa-clock"></i> Upcoming Classes
+            </button>
+        </div>
+        
+        <!-- Weekly Schedule Grid -->
+        <div id="weeklyView" class="content-section">
+            <div class="section-header">
+                <h2><i class="fas fa-calendar-week"></i> Weekly Schedule</h2>
+                <div class="section-actions">
+                    <select class="form-control">
+                        <option>Current Week</option>
+                        <option>Next Week</option>
+                        <option>Previous Week</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div th:if="${schedules == null or schedules.empty}" class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-calendar-times"></i>
+                </div>
+                <h3>No Schedule Found</h3>
+                <p>You don't have any scheduled classes currently. Your schedule will appear here once classes are assigned to you.</p>
+            </div>
+            
+            <div th:unless="${schedules == null or schedules.empty}" class="schedule-list">
+                <div class="schedule-item" th:each="schedule : ${schedules}">
+                    <div class="schedule-day" th:text="${schedule.dayOfWeek}">Day</div>
+                    <div class="schedule-time" th:text="${schedule.startTime + ' - ' + schedule.endTime}">Time</div>
+                    <div class="schedule-subject">
+                        <div class="subject-code" th:text="${schedule.subject.subjectCode}">Subject Code</div>
+                        <div class="subject-name" th:text="${schedule.subject.subjectName}">Subject Name</div>
+                    </div>
+                    <div class="schedule-room" th:text="${schedule.room}">Room</div>
+                    <div class="schedule-actions">
+                        <button class="btn btn-sm btn-info" th:onclick="'viewClassDetails(' + ${schedule.id} + ')'">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Today's Schedule -->
+        <div id="dailyView" class="content-section" style="display: none;">
+            <div class="today-schedule">
+                <div class="today-header">
+                    <div class="today-date">
+                        <div style="font-size: 1.2em; font-weight: 700;">MON</div>
+                        <div style="font-size: 1.5em;">15</div>
+                        <div style="font-size: 0.9em;">Jan 2024</div>
+                    </div>
+                    <div class="today-info">
+                        <h3>Today's Classes</h3>
+                        <p>You have 4 classes scheduled for today</p>
+                    </div>
+                </div>
+                
+                <div class="class-timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-time">8:00 AM</div>
+                        <div class="timeline-content">
+                            <div class="timeline-subject">CS101 - Introduction to Programming</div>
+                            <div class="timeline-details">Room 201 • Section A • 30 students</div>
+                        </div>
+                        <div class="timeline-actions">
+                            <button class="btn btn-sm btn-info">
+                                <i class="fas fa-users"></i> View Students
+                            </button>
+                            <button class="btn btn-sm btn-primary">
+                                <i class="fas fa-door-open"></i> Go to Room
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-time">10:00 AM</div>
+                        <div class="timeline-content">
+                            <div class="timeline-subject">ENG101 - English Communication</div>
+                            <div class="timeline-details">Room 102 • Section B • 25 students</div>
+                        </div>
+                        <div class="timeline-actions">
+                            <button class="btn btn-sm btn-info">
+                                <i class="fas fa-users"></i> View Students
+                            </button>
+                            <button class="btn btn-sm btn-primary">
+                                <i class="fas fa-door-open"></i> Go to Room
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-time">2:00 PM</div>
+                        <div class="timeline-content">
+                            <div class="timeline-subject">CS102 - Data Structures</div>
+                            <div class="timeline-details">Room 203 • Section A • 28 students</div>
+                        </div>
+                        <div class="timeline-actions">
+                            <button class="btn btn-sm btn-info">
+                                <i class="fas fa-users"></i> View Students
+                            </button>
+                            <button class="btn btn-sm btn-primary">
+                                <i class="fas fa-door-open"></i> Go to Room
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-time">4:00 PM</div>
+                        <div class="timeline-content">
+                            <div class="timeline-subject">IT103 - Database Systems</div>
+                            <div class="timeline-details">Room 301 • Section C • 22 students</div>
+                        </div>
+                        <div class="timeline-actions">
+                            <button class="btn btn-sm btn-info">
+                                <i class="fas fa-users"></i> View Students
+                            </button>
+                            <button class="btn btn-sm btn-primary">
+                                <i class="fas fa-door-open"></i> Go to Room
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Upcoming Classes -->
+        <div id="upcomingView" class="content-section" style="display: none;">
+            <div class="upcoming-classes">
+                <div class="section-header">
+                    <h2><i class="fas fa-clock"></i> Upcoming Classes</h2>
+                    <div class="section-actions">
+                        <span class="badge badge-info">Next 7 days</span>
+                    </div>
+                </div>
+                
+                <div class="upcoming-item">
+                    <div class="upcoming-time">Tomorrow<br>8:00 AM</div>
+                    <div class="upcoming-content">
+                        <div class="upcoming-subject">MATH201 - Calculus II</div>
+                        <div class="upcoming-room">Room 105 • Section A</div>
+                    </div>
+                    <button class="btn btn-sm btn-primary">
+                        <i class="fas fa-bell"></i> Set Reminder
+                    </button>
+                </div>
+                
+                <div class="upcoming-item">
+                    <div class="upcoming-time">Tomorrow<br>10:00 AM</div>
+                    <div class="upcoming-content">
+                        <div class="upcoming-subject">CS101 - Introduction to Programming</div>
+                        <div class="upcoming-room">Room 201 • Section B</div>
+                    </div>
+                    <button class="btn btn-sm btn-primary">
+                        <i class="fas fa-bell"></i> Set Reminder
+                    </button>
+                </div>
+                
+                <div class="upcoming-item">
+                    <div class="upcoming-time">Wed<br>9:00 AM</div>
+                    <div class="upcoming-content">
+                        <div class="upcoming-subject">IT102 - Web Development</div>
+                        <div class="upcoming-room">Room 301 • Section A</div>
+                    </div>
+                    <button class="btn btn-sm btn-primary">
+                        <i class="fas fa-bell"></i> Set Reminder
+                    </button>
+                </div>
+                
+                <div class="upcoming-item">
+                    <div class="upcoming-time">Thu<br>2:00 PM</div>
+                    <div class="upcoming-content">
+                        <div class="upcoming-subject">ENG101 - English Communication</div>
+                        <div class="upcoming-room">Room 102 • Section C</div>
+                    </div>
+                    <button class="btn btn-sm btn-primary">
+                        <i class="fas fa-bell"></i> Set Reminder
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // View switching functions
+        function showWeeklyView() {
+            document.getElementById('weeklyView').style.display = 'block';
+            document.getElementById('dailyView').style.display = 'none';
+            document.getElementById('upcomingView').style.display = 'none';
+            
+            // Update active button
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+        
+        function showDailyView() {
+            document.getElementById('weeklyView').style.display = 'none';
+            document.getElementById('dailyView').style.display = 'block';
+            document.getElementById('upcomingView').style.display = 'none';
+            
+            // Update active button
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+        
+        function showUpcomingView() {
+            document.getElementById('weeklyView').style.display = 'none';
+            document.getElementById('dailyView').style.display = 'none';
+            document.getElementById('upcomingView').style.display = 'block';
+            
+            // Update active button
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+        
+        // Class interaction functions
+        function viewClassDetails(classCode, day, time) {
+            alert(`Class Details:\nSubject: ${classCode}\nDay: ${day}\nTime: ${time}`);
+        }
+        
+        function exportSchedule() {
+            alert('Exporting schedule...');
+        }
+        
+        // Initialize current time highlighting
+        function highlightCurrentTime() {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+            
+            // Add highlighting logic here
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            highlightCurrentTime();
+        });
+    </script>
+</body>
+</html> 

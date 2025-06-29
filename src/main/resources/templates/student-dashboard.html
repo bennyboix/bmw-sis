@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Student Dashboard - BMW-SIS</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f4f4;
+            color: #423736;
+        }
+        .header {
+            background: linear-gradient(135deg, #987185 0%, #D6AA9F 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .logo img {
+            height: 40px;
+            width: auto;
+        }
+        .logo i {
+            margin-right: 8px;
+            font-size: 1.2em;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        .welcome-section {
+            background: #F4E2D1;
+            padding: 2rem;
+            border-radius: 10px;
+            border: 1px solid #b9b8b8;
+            box-shadow: 2px 2px 8px #bcb6b6;
+            margin-bottom: 2rem;
+        }
+        .welcome-section h1 {
+            color: #987185;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .student-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .info-card {
+            background: #ffffff;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #D6AA9F;
+            border: 1px solid #b9b8b8;
+            box-shadow: 2px 2px 8px #bcb6b6;
+        }
+        .info-card h3 {
+            color: #987185;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .info-card p {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #423736;
+        }
+        .navigation-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .nav-card {
+            background: #F4E2D1;
+            padding: 2rem;
+            border-radius: 10px;
+            border: 1px solid #b9b8b8;
+            box-shadow: 2px 2px 8px #bcb6b6;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+        .nav-card:hover {
+            transform: translateY(-5px);
+            background: #D6AA9F;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        .nav-card .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .nav-card h3 {
+            color: #987185;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        .nav-card p {
+            color: #423736;
+            line-height: 1.6;
+        }
+        .grades-icon { color: #987185; }
+        .schedule-icon { color: #D6AA9F; }
+        .enroll-icon { color: #423736; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <img src="/BMWlogo.png" alt="BMW Logo" onerror="this.style.display='none'"/>
+                <span>BMW-SIS Student Portal</span>
+            </div>
+            <div class="user-info">
+                <span th:text="'Welcome, ' + ${student.firstName} + ' ' + ${student.lastName} + ' (' + ${student.fullSection} + ')'"></span>
+                <a href="/student/logout" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="welcome-section">
+            <h1>
+                <i class="fas fa-home"></i>
+                <span th:text="'Welcome back, ' + ${student.firstName} + '!'"></span>
+            </h1>
+            <p>Access your academic information and manage your enrollment from your dashboard.</p>
+            
+            <div class="student-info">
+                <div class="info-card">
+                    <h3><i class="fas fa-id-card"></i> Student ID</h3>
+                    <p th:text="${student.studentId}"></p>
+                </div>
+                <div class="info-card">
+                    <h3><i class="fas fa-graduation-cap"></i> Course</h3>
+                    <p th:text="${student.course}"></p>
+                </div>
+                <div class="info-card">
+                    <h3><i class="fas fa-layer-group"></i> Year Level</h3>
+                    <p th:text="${student.yearLevel}"></p>
+                </div>
+                <div class="info-card">
+                    <h3><i class="fas fa-users"></i> Section</h3>
+                    <p th:text="${student.fullSection}"></p>
+                </div>
+                <div class="info-card">
+                    <h3><i class="fas fa-envelope"></i> Email</h3>
+                    <p th:text="${student.email}"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="navigation-cards">
+            <a href="/student/grades" class="nav-card">
+                <div class="icon grades-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>View Grades</h3>
+                <p>Check your midterm and final grades for all subjects. View your academic performance and status.</p>
+            </a>
+
+            <a href="/student/schedule" class="nav-card">
+                <div class="icon schedule-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <h3>My Schedule</h3>
+                <p>View your current class schedule including subject codes, descriptions, units, and faculty information.</p>
+            </a>
+
+            <a href="/student/enroll" class="nav-card">
+                <div class="icon enroll-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h3>Enrollment</h3>
+                <p>Enroll in available IT subjects. Choose from available schedules and professors when enrollment is open.</p>
+            </a>
+        </div>
+    </div>
+</body>
+</html> 

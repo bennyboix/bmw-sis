@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Curriculum Management - BMW SIS</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/admin-style.css?v=3.0}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" th:src="@{/js/admin-main.js?v=2.0}"></script>
+    <style>
+        .subject-selection-container {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            background: #f8f9fa;
+        }
+        .available-subjects {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            background: white;
+        }
+        .subject-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .subject-item:hover {
+            background: #f1f3f4;
+        }
+        .subject-item input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        .subject-details {
+            flex: 1;
+        }
+        .subject-code {
+            font-weight: bold;
+            color: #495057;
+        }
+        .subject-desc {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .subject-units {
+            background: #007bff;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+        .selected-subjects {
+            margin-top: 15px;
+            padding: 15px;
+            background: #e7f3ff;
+            border-radius: 4px;
+            border: 1px solid #b3d7ff;
+        }
+        .selected-subject-tag {
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            padding: 5px 10px;
+            margin: 3px;
+            border-radius: 15px;
+            font-size: 0.85em;
+        }
+        .selected-subject-tag .remove-btn {
+            margin-left: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .form-group-full {
+            grid-column: 1 / -1;
+        }
+        .units-counter {
+            font-weight: bold;
+            color: #28a745;
+            font-size: 1.1em;
+        }
+        .max-subjects-warning {
+            color: #dc3545;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="profile-section">
+            <div class="profile-avatar">
+                <img src="/BMWlogo.png" alt="BMW Logo" style="width: 60px; height: 60px; border-radius: 50%; object-fit: contain; background: white; padding: 8px;"/>
+            </div>
+            <div class="profile-name" th:text="${admin.firstName + ' ' + admin.lastName}">Administrator</div>
+            <div class="profile-role">System Administrator</div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Main Navigation</div>
+            <div class="nav-buttons">
+                <a href="/admin/dashboard">
+                    <i class="fas fa-chart-line"></i>
+                    Dashboard
+                </a>
+                <a href="/admin/simple-students">
+                    <i class="fas fa-user-graduate"></i>
+                    Students
+                </a>
+                <a href="/admin/faculty">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    Faculty
+                </a>
+            </div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Academic Management</div>
+            <div class="nav-buttons">
+                <a href="/admin/subjects">
+                    <i class="fas fa-book"></i>
+                    Subjects
+                </a>
+                <a href="/admin/schedules">
+                    <i class="fas fa-calendar-alt"></i>
+                    Schedules
+                </a>
+                <a href="/admin/curriculum" class="active">
+                    <i class="fas fa-list-alt"></i>
+                    Curriculum
+                </a>
+                <a href="/admin/sections">
+                    <i class="fas fa-building"></i>
+                    Sections
+                </a>
+                <a href="/admin/enrollment">
+                    <i class="fas fa-user-plus"></i>
+                    Enrollment
+                </a>
+            </div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">System</div>
+            <div class="nav-buttons">
+                <a href="/admin/settings">⚙️ Settings</a>
+            </div>
+        </div>
+        
+        <a href="/admin/logout" class="logout-btn">🚪 Logout</a>
+    </div>
+    
+    <div class="main-content">
+        <div class="content-header">
+            <div>
+                <h1>
+                    <i class="fas fa-list-alt"></i>
+                    Curriculum Management
+                </h1>
+                <p>Create curriculum packages that can be assigned to students, making subjects available for selection in their enrollment portal</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i>
+                    Create Curriculum Package
+                </button>
+            </div>
+        </div>
+        
+        <!-- Alert Messages -->
+        <div th:if="${success}" class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <span th:text="${success}"></span>
+        </div>
+        <div th:if="${error}" class="alert alert-error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span th:text="${error}"></span>
+        </div>
+        
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-list-alt"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" th:text="${curriculums != null ? curriculums.size() : 0}">0</div>
+                    <div class="stat-label">Total Curriculums</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="activeCurriculums">0</div>
+                    <div class="stat-label">Active Curriculums</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalSubjects">0</div>
+                    <div class="stat-label">Total Subjects</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-weight"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalUnits">0</div>
+                    <div class="stat-label">Total Units</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>
+                <i class="fas fa-list"></i>
+                Active Curriculum Packages
+            </h2>
+            
+            <div th:if="${curriculums == null or curriculums.empty}" class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-list-alt"></i>
+                </div>
+                <h3>No Curriculum Packages Found</h3>
+                <p>Create curriculum packages that will automatically appear in the student enrollment portal.</p>
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i>
+                    Create First Curriculum Package
+                </button>
+            </div>
+            
+            <div th:unless="${curriculums == null or curriculums.empty}" class="table-container">
+                <table>
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-code"></i> Code</th>
+                        <th><i class="fas fa-book"></i> Name</th>
+                        <th><i class="fas fa-graduation-cap"></i> Program</th>
+                        <th><i class="fas fa-layer-group"></i> Year & Semester</th>
+                        <th><i class="fas fa-list"></i> Subjects</th>
+                        <th><i class="fas fa-weight"></i> Units</th>
+                        <th><i class="fas fa-circle"></i> Status</th>
+                        <th><i class="fas fa-cogs"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="curriculum : ${curriculums}">
+                        <td><strong th:text="${curriculum.curriculumCode}">CURR001</strong></td>
+                        <td th:text="${curriculum.curriculumName}">IT Core Subjects</td>
+                        <td>
+                            <span class="badge badge-primary" th:text="${curriculum.course}">IT</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-info" th:text="${curriculum.yearLevel + (curriculum.yearLevel == 1 ? 'st' : (curriculum.yearLevel == 2 ? 'nd' : (curriculum.yearLevel == 3 ? 'rd' : 'th'))) + ' Year'}">1st Year</span>
+                            <span class="badge badge-secondary" th:text="${curriculum.semester + (curriculum.semester == 1 ? 'st' : 'nd') + ' Sem'}">1st Sem</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-warning" th:text="${curriculum.subjects != null ? curriculum.subjects.size() : 0} + ' subjects'">5 subjects</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-success" th:text="${curriculum.totalUnits} + ' units'">21 units</span>
+                        </td>
+                        <td>
+                            <span th:class="'badge ' + (${curriculum.status} == 'ACTIVE' ? 'badge-success' : (${curriculum.status} == 'DRAFT' ? 'badge-warning' : 'badge-danger'))" 
+                                  th:text="${curriculum.status}">ACTIVE</span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-info btn-sm" 
+                                        th:onclick="'viewCurriculum(' + ${curriculum.id} + ')'" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-primary btn-sm" 
+                                        th:onclick="'editCurriculum(' + ${curriculum.id} + ')'" title="Edit Curriculum">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-danger btn-sm" 
+                                        th:onclick="'deleteCurriculum(' + ${curriculum.id} + ')'" title="Delete Curriculum">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Curriculum Modal -->
+    <div id="curriculumModal" class="modal">
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h2 id="modalTitle">
+                    <i class="fas fa-plus"></i>
+                    Create New Curriculum Package
+                </h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="curriculumForm" method="post" action="/admin/curriculum/add">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="curriculumCode">Curriculum Code:</label>
+                        <input type="text" id="curriculumCode" name="curriculumCode" required placeholder="e.g., IT-1ST-2024">
+                    </div>
+                    <div class="form-group">
+                        <label for="curriculumName">Curriculum Name:</label>
+                        <input type="text" id="curriculumName" name="curriculumName" required placeholder="e.g., IT 1st Year Core Subjects">
+                    </div>
+                    <div class="form-group">
+                        <label for="course">Program/Course:</label>
+                        <select id="course" name="course" required onchange="filterSubjectsByCourse()">
+                            <option value="">Select Program</option>
+                            <option th:each="program : ${programs}" 
+                                    th:value="${program.programName}" 
+                                    th:text="${program.programCode + ' - ' + program.programName}">Program Option</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="yearLevel">Year Level:</label>
+                        <input type="number" id="yearLevel" name="yearLevel" required onchange="filterSubjectsByCourse()" 
+                               placeholder="Enter year level (e.g., 1, 2, 3, 4)" min="1" max="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="semester">Semester:</label>
+                        <input type="number" id="semester" name="semester" required 
+                               placeholder="Enter semester (e.g., 1, 2)" min="1" max="3">
+                    </div>
+                    <div class="form-group">
+                        <label for="academicYear">Academic Year:</label>
+                        <select id="academicYear" name="academicYear" required>
+                            <option value="">Select Academic Year</option>
+                            <option value="2024-2025">2024-2025</option>
+                            <option value="2025-2026">2025-2026</option>
+                            <option value="2026-2027">2026-2027</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="effectiveDate">Effective Date:</label>
+                        <input type="date" id="effectiveDate" name="effectiveDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status:</label>
+                        <select id="status" name="status" required>
+                            <option value="ACTIVE">Active (Available to Students)</option>
+                            <option value="DRAFT">Draft (Hidden from Students)</option>
+                            <option value="INACTIVE">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Subject Selection Container -->
+                <div class="form-group-full">
+                    <div class="subject-selection-container">
+                        <h3><i class="fas fa-book"></i> Select Subjects for this Curriculum (Max 8)</h3>
+                        <p class="text-muted">Choose subjects that will be available for student enrollment when this curriculum is active.</p>
+                        
+                        <div class="available-subjects" id="availableSubjects">
+                            <!-- No subjects fallback -->
+                            <div th:if="${subjects == null || subjects.isEmpty()}" class="text-center text-muted" style="padding: 20px;">
+                                <i class="fas fa-info-circle"></i> No subjects available. Please add subjects first in the Subjects section.
+                            </div>
+                            <!-- Display subjects when available -->
+                            <div th:unless="${subjects == null || subjects.isEmpty()}">
+                                <div th:each="subject : ${subjects}" class="subject-item" 
+                                     th:attr="data-course=${subject.course}, data-year=${subject.yearLevel}">
+                                    <input type="checkbox" th:value="${subject.id}" name="subjectIds" 
+                                           onchange="updateSelectedSubjects()">
+                                    <div class="subject-details">
+                                        <div class="subject-code" th:text="${subject.subjectCode}">IT101</div>
+                                        <div class="subject-desc" th:text="${subject.subjectDescription}">Introduction to Programming</div>
+                                        <small class="text-muted" th:text="'Course: ' + ${subject.course} + ' | Year: ' + ${subject.yearLevel}">Course: IT | Year: 1</small>
+                                    </div>
+                                    <span class="subject-units" th:text="${subject.units} + ' units'">3 units</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="selected-subjects" id="selectedSubjectsDisplay">
+                            <h4>Selected Subjects: <span id="selectedCount">0</span>/8</h4>
+                            <div class="units-counter">Total Units: <span id="totalUnitsDisplay">0</span></div>
+                            <div id="selectedSubjectsList"></div>
+                            <div class="max-subjects-warning" id="maxSubjectsWarning" style="display: none;">
+                                Maximum 8 subjects allowed. Please remove some subjects to add new ones.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group-full">
+                    <label for="description">Description:</label>
+                    <textarea id="description" name="description" rows="3" placeholder="Optional description of this curriculum package"></textarea>
+                </div>
+                
+                <!-- Hidden field for total units (calculated automatically) -->
+                <input type="hidden" id="totalUnits" name="totalUnits" value="0">
+                
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-success" id="saveCurriculumBtn">
+                        <i class="fas fa-save"></i> Save Curriculum Package
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let selectedSubjects = [];
+        
+        $(document).ready(function() {
+            console.log('Enhanced Curriculum management page loaded');
+            updateStatistics();
+            
+            // Set default academic year and effective date
+            const currentYear = new Date().getFullYear();
+            const nextYear = currentYear + 1;
+            const academicYear = currentYear + '-' + nextYear;
+            
+            $('#academicYear').val(academicYear);
+            $('#effectiveDate').val(new Date().toISOString().split('T')[0]);
+        });
+        
+        function filterSubjectsByCourse() {
+            const selectedCourse = $('#course').val();
+            const selectedYear = $('#yearLevel').val();
+            
+            console.log('Filtering - Selected Course:', selectedCourse, 'Selected Year:', selectedYear);
+            
+            $('#availableSubjects .subject-item').each(function() {
+                const course = $(this).attr('data-course');
+                const year = $(this).attr('data-year');
+                
+                console.log('Subject - Course:', course, 'Year:', year);
+                
+                let show = true;
+                
+                // More flexible course matching - show all subjects for now to debug
+                if (selectedCourse && selectedCourse !== "") {
+                    // For now, show all subjects regardless of course to debug the issue
+                    // Later we can make this more specific
+                    show = true;
+                }
+                
+                // Year level filtering
+                if (selectedYear && selectedYear !== "" && year && year !== selectedYear) {
+                    show = false;
+                }
+                
+                $(this).toggle(show);
+                
+                if (!show) {
+                    console.log('Hiding subject:', course, year);
+                } else {
+                    console.log('Showing subject:', course, year);
+                }
+            });
+            
+            // Debug: show total visible subjects
+            const visibleCount = $('#availableSubjects .subject-item:visible').length;
+            console.log('Total visible subjects after filtering:', visibleCount);
+        }
+        
+        function updateSelectedSubjects() {
+            selectedSubjects = [];
+            let totalUnits = 0;
+            
+            $('#availableSubjects input[type="checkbox"]:checked').each(function() {
+                const subjectId = $(this).val();
+                const subjectItem = $(this).closest('.subject-item');
+                const code = subjectItem.find('.subject-code').text();
+                const description = subjectItem.find('.subject-desc').text();
+                const unitsText = subjectItem.find('.subject-units').text();
+                const units = parseInt(unitsText.replace(/\D/g, '')) || 0;
+                
+                selectedSubjects.push({
+                    id: subjectId,
+                    code: code,
+                    description: description,
+                    units: units
+                });
+                totalUnits += units;
+            });
+            
+            // Update display
+            $('#selectedCount').text(selectedSubjects.length);
+            $('#totalUnitsDisplay').text(totalUnits);
+            $('#totalUnits').val(totalUnits);
+            
+            // Update selected subjects list
+            const subjectsList = $('#selectedSubjectsList');
+            subjectsList.empty();
+            
+            selectedSubjects.forEach(function(subject) {
+                const tag = $('<span class="selected-subject-tag">' + 
+                    subject.code + ' (' + subject.units + ' units)' +
+                    '<span class="remove-btn" onclick="removeSubject(\'' + subject.id + '\')">×</span>' +
+                    '</span>');
+                subjectsList.append(tag);
+            });
+            
+            // Show/hide warning and disable checkboxes if max reached
+            const maxReached = selectedSubjects.length >= 8;
+            $('#maxSubjectsWarning').toggle(maxReached);
+            
+            $('#availableSubjects input[type="checkbox"]:not(:checked)').prop('disabled', maxReached);
+            
+            // Update save button state
+            $('#saveCurriculumBtn').prop('disabled', selectedSubjects.length === 0);
+        }
+        
+        function removeSubject(subjectId) {
+            $('#availableSubjects input[value="' + subjectId + '"]').prop('checked', false);
+            updateSelectedSubjects();
+        }
+        
+        function updateStatistics() {
+            const rows = $('table tbody tr');
+            
+            if (rows.length > 0) {
+                // Count active curriculums
+                const activeCount = rows.filter(function() {
+                    return $(this).find('.badge-success').length > 0;
+                }).length;
+                
+                // Count total subjects and units
+                let totalSubjects = 0;
+                let totalUnits = 0;
+                
+                rows.each(function() {
+                    const subjectsText = $(this).find('td:eq(4) .badge').text().trim();
+                    const unitsText = $(this).find('td:eq(5) .badge').text().trim();
+                    const subjects = parseInt(subjectsText.replace(/\D/g, '')) || 0;
+                    const units = parseInt(unitsText.replace(/\D/g, '')) || 0;
+                    
+                    totalSubjects += subjects;
+                    totalUnits += units;
+                });
+                
+                $('#activeCurriculums').text(activeCount);
+                $('#totalSubjects').text(totalSubjects);
+                $('#totalUnits').text(totalUnits);
+            } else {
+                $('#activeCurriculums').text('0');
+                $('#totalSubjects').text('0');
+                $('#totalUnits').text('0');
+            }
+            
+            // Add loaded class to animate cards
+            $('.stat-card').addClass('loaded');
+        }
+        
+        function openAddModal() {
+            console.log('Opening add modal...');
+            try {
+                document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus"></i> Create New Curriculum Package';
+                document.getElementById('curriculumForm').action = '/admin/curriculum/add';
+                document.getElementById('curriculumForm').reset();
+                
+                // Reset selections
+                selectedSubjects = [];
+                $('#availableSubjects input[type="checkbox"]').prop('checked', false).prop('disabled', false);
+                updateSelectedSubjects();
+                
+                // Set defaults
+                const currentYear = new Date().getFullYear();
+                const nextYear = currentYear + 1;
+                const academicYear = currentYear + '-' + nextYear;
+                $('#academicYear').val(academicYear);
+                $('#effectiveDate').val(new Date().toISOString().split('T')[0]);
+                
+                console.log('About to show modal...');
+                document.getElementById('curriculumModal').style.display = 'block';
+                console.log('Modal should be visible now.');
+            } catch (error) {
+                console.error('Error in openAddModal:', error);
+                alert('Error opening modal: ' + error.message);
+            }
+        }
+
+        function editCurriculum(id) {
+            fetch('/admin/curriculum/' + id)
+                .then(response => response.json())
+                .then(curriculum => {
+                    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Curriculum Package';
+                    document.getElementById('curriculumForm').action = '/admin/curriculum/update/' + id;
+                    
+                    // Populate basic fields
+                    document.getElementById('curriculumCode').value = curriculum.curriculumCode;
+                    document.getElementById('curriculumName').value = curriculum.curriculumName;
+                    document.getElementById('course').value = curriculum.course;
+                    document.getElementById('yearLevel').value = curriculum.yearLevel;
+                    document.getElementById('semester').value = curriculum.semester;
+                    document.getElementById('academicYear').value = curriculum.academicYear;
+                    document.getElementById('effectiveDate').value = curriculum.effectiveDate;
+                    document.getElementById('status').value = curriculum.status;
+                    document.getElementById('description').value = curriculum.description || '';
+                    
+                    // Reset and populate subject selections
+                    selectedSubjects = [];
+                    $('#availableSubjects input[type="checkbox"]').prop('checked', false).prop('disabled', false);
+                    
+                    if (curriculum.subjects && curriculum.subjects.length > 0) {
+                        curriculum.subjects.forEach(function(subject) {
+                            $('#availableSubjects input[value="' + subject.id + '"]').prop('checked', true);
+                        });
+                    }
+                    
+                    updateSelectedSubjects();
+                    filterSubjectsByCourse();
+                    
+                    document.getElementById('curriculumModal').style.display = 'block';
+                })
+                .catch(error => {
+                    alert('Error loading curriculum data: ' + error);
+                });
+        }
+        
+        function viewCurriculum(id) {
+            alert('View functionality will be implemented. Curriculum ID: ' + id);
+        }
+
+        function deleteCurriculum(id) {
+            if (confirm('Are you sure you want to delete this curriculum package?\n\nThis will remove it from student enrollment options.')) {
+                fetch('/admin/curriculum/delete/' + id, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Error deleting curriculum');
+                    }
+                })
+                .catch(error => {
+                    alert('Error deleting curriculum');
+                });
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('curriculumModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            var modal = document.getElementById('curriculumModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        // Form validation
+        $('#curriculumForm').on('submit', function(e) {
+            if (selectedSubjects.length === 0) {
+                e.preventDefault();
+                alert('Please select at least one subject for this curriculum.');
+                return false;
+            }
+            
+            if (selectedSubjects.length > 8) {
+                e.preventDefault();
+                alert('Maximum 8 subjects allowed per curriculum.');
+                return false;
+            }
+        });
+    </script>
+</body>
+</html> 

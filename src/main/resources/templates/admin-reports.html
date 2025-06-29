@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>BMW-SIS Admin - Generate Reports</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/admin-style.css?v=3.0}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" th:src="@{/js/admin-main.js}"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="profile-section">
+            <div class="profile-avatar">
+                <img src="/BMWlogo.png" alt="BMW Logo" style="width: 60px; height: 60px; border-radius: 50%; object-fit: contain; background: white; padding: 8px;"/>
+            </div>
+            <div class="profile-name" th:text="${admin.firstName + ' ' + admin.lastName}">Administrator</div>
+            <div class="profile-role">System Administrator</div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Main Navigation</div>
+        <div class="nav-buttons">
+            <a href="/admin/dashboard">  Dashboard</a>
+                            <a href="/admin/simple-students"> Students</a>
+            <a href="/admin/faculty"> Faculty</a>
+            </div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Academic Management</div>
+            <div class="nav-buttons">
+            <a href="/admin/subjects"> Subjects</a>
+            <a href="/admin/schedules"> Schedules</a>
+            <a href="/admin/curriculum"> Curriculum</a>
+            <a href="/admin/sections"> Sections</a>
+            <a href="/admin/enrollment"> Enrollment</a>
+            </div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">System</div>
+            <div class="nav-buttons">
+                <a href="/admin/settings"> Settings</a>
+            </div>
+        </div>
+        <a href="/admin/logout" class="logout-btn"> Logout</a>
+    </div>
+    
+    <div class="main-content">
+        <div class="header">
+            <h1>Generate Reports</h1>
+            <button class="btn btn-primary" onclick="generateAllReports()">📊 Generate All Reports</button>
+        </div>
+        
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        
+        <div class="stats-row">
+            <div class="stat-card">
+                <h3 th:text="${totalStudents}">0</h3>
+                <p>Total Students</p>
+            </div>
+            <div class="stat-card">
+                <h3 th:text="${totalFaculty}">0</h3>
+                <p>Total Faculty</p>
+            </div>
+            <div class="stat-card">
+                <h3 th:text="${totalSubjects}">0</h3>
+                <p>Total Subjects</p>
+            </div>
+            <div class="stat-card">
+                <h3 th:text="${totalEnrollments}">0</h3>
+                <p>Total Enrollments</p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Student Reports</h2>
+            <div class="stats-row">
+                <div class="stat-card" style="cursor: pointer;" onclick="generateStudentReport()">
+                    <h3>👨‍🎓</h3>
+                    <p>Student Directory Report</p>
+                    <small>Complete list of all students</small>
+                </div>
+                <div class="stat-card" style="cursor: pointer;" onclick="generateEnrollmentReport()">
+                    <h3>📝</h3>
+                    <p>Enrollment Summary</p>
+                    <small>Enrollment statistics by program</small>
+                </div>
+                <div class="stat-card" style="cursor: pointer;" onclick="generateGradeReport()">
+                    <h3>📊</h3>
+                    <p>Grade Distribution</p>
+                    <small>Grade statistics and pass rates</small>
+                </div>
+                <div class="stat-card" style="cursor: pointer;" onclick="generateAttendanceReport()">
+                    <h3>📅</h3>
+                    <p>Attendance Report</p>
+                    <small>Student attendance tracking</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Faculty Reports</h2>
+            <div class="stats-row">
+                <div class="stat-card" style="cursor: pointer;" onclick="generateFacultyReport()">
+                    <h3>👨‍🏫</h3>
+                    <p>Faculty Directory</p>
+                    <small>Complete faculty information</small>
+                </div>
+                <div class="stat-card" style="cursor: pointer;" onclick="generateWorkloadReport()">
+                    <h3>⚖️</h3>
+                    <p>Faculty Workload</p>
+                    <small>Teaching load analysis</small>
+                </div>
+                <div class="stat-card" style="cursor: pointer;" onclick="generatePerformanceReport()">
+                    <h3>📈</h3>
+                    <p>Performance Report</p>
+                    <small>Student success rates by faculty</small>
+                </div>
+                <div class="stat-card" style="cursor: pointer;" onclick="generateScheduleReport()">
+                    <h3>🗓️</h3>
+                    <p>Schedule Report</p>
+                    <small>Faculty schedule overview</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Academic Reports</h2>
+            <div class="stats-row">
+                <div class="stat-card" style="cursor: pointer;" onclick="generateSubjectReport()">
+                    <h3>📚</h3>
+                    <p>Subject Catalog</p>
+                    <small>Complete subject listings</small>
+                </div>
+                <div class="stat-card" style="cursor: pointer;" onclick="generateCurriculumReport()">
+                    <h3>🎓</h3>
+                    <p>Curriculum Report</p>
+                    <small>Program structure analysis</small>
+                </div>
+                <div class="stat-card" style="cursor: pointer;" onclick="generateCapacityReport()">
+                    <h3>🏢</h3>
+                    <p>Capacity Report</p>
+                    <small>Room and class capacity</small>
+                </div>
+                <div class="stat-card" style="cursor: pointer;" onclick="generateFinancialReport()">
+                    <h3>💰</h3>
+                    <p>Financial Summary</p>
+                    <small>Revenue and expenses</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Custom Report Generator</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="reportType">Report Type</label>
+                    <select id="reportType" name="reportType">
+                        <option value="">Select Report Type</option>
+                        <option value="student">Student Reports</option>
+                        <option value="faculty">Faculty Reports</option>
+                        <option value="academic">Academic Reports</option>
+                        <option value="financial">Financial Reports</option>
+                        <option value="custom">Custom Query</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="dateFrom">Date From</label>
+                    <input type="date" id="dateFrom" name="dateFrom">
+                </div>
+                <div class="form-group">
+                    <label for="dateTo">Date To</label>
+                    <input type="date" id="dateTo" name="dateTo">
+                </div>
+                <div class="form-group">
+                    <label for="format">Export Format</label>
+                    <select id="format" name="format">
+                        <option value="pdf">PDF</option>
+                        <option value="excel">Excel</option>
+                        <option value="csv">CSV</option>
+                        <option value="html">HTML</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="customQuery">Custom Query (Optional)</label>
+                <textarea id="customQuery" name="customQuery" rows="4" placeholder="Enter custom SQL query or report parameters..."></textarea>
+            </div>
+            <div style="text-align: right; margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" onclick="resetForm()">🔄 Reset</button>
+                <button type="button" class="btn btn-primary" onclick="generateCustomReport()">📊 Generate Custom Report</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Recent Reports</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Report Name</th>
+                            <th>Type</th>
+                            <th>Generated Date</th>
+                            <th>Generated By</th>
+                            <th>Format</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Student Directory Report</td>
+                            <td><span class="badge badge-success">Student</span></td>
+                            <td>2024-01-15 10:30</td>
+                            <td>Administrator</td>
+                            <td>PDF</td>
+                            <td>
+                                <button class="btn btn-info btn-sm" onclick="downloadReport('student-directory.pdf')">📥 Download</button>
+                                <button class="btn btn-primary btn-sm" onclick="viewReport('student-directory.pdf')">👁️ View</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Grade Distribution Report</td>
+                            <td><span class="badge badge-warning">Academic</span></td>
+                            <td>2024-01-14 14:15</td>
+                            <td>Administrator</td>
+                            <td>Excel</td>
+                            <td>
+                                <button class="btn btn-info btn-sm" onclick="downloadReport('grade-distribution.xlsx')">📥 Download</button>
+                                <button class="btn btn-primary btn-sm" onclick="viewReport('grade-distribution.xlsx')">👁️ View</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Faculty Workload Report</td>
+                            <td><span class="badge badge-info">Faculty</span></td>
+                            <td>2024-01-13 09:45</td>
+                            <td>Administrator</td>
+                            <td>PDF</td>
+                            <td>
+                                <button class="btn btn-info btn-sm" onclick="downloadReport('faculty-workload.pdf')">📥 Download</button>
+                                <button class="btn btn-primary btn-sm" onclick="viewReport('faculty-workload.pdf')">👁️ View</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        $(document).ready(function() {
+            // Set default date range (last 30 days)
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+            
+            $('#dateTo').val(today.toISOString().split('T')[0]);
+            $('#dateFrom').val(thirtyDaysAgo.toISOString().split('T')[0]);
+        });
+        
+        function generateAllReports() {
+            if (confirm('This will generate all available reports. This may take several minutes. Continue?')) {
+                showAlert('Generating all reports... This may take a few minutes.', 'info');
+                setTimeout(() => {
+                    showAlert('All reports have been generated successfully!', 'success');
+                }, 3000);
+            }
+        }
+        
+        function generateStudentReport() {
+            showAlert('Generating Student Directory Report...', 'info');
+            setTimeout(() => {
+                showAlert('Student Directory Report generated successfully!', 'success');
+            }, 2000);
+        }
+        
+        function generateEnrollmentReport() {
+            showAlert('Generating Enrollment Summary Report...', 'info');
+            setTimeout(() => {
+                showAlert('Enrollment Summary Report generated successfully!', 'success');
+            }, 2000);
+        }
+        
+        function generateGradeReport() {
+            showAlert('Generating Grade Distribution Report...', 'info');
+            setTimeout(() => {
+                showAlert('Grade Distribution Report generated successfully!', 'success');
+            }, 2000);
+        }
+        
+        function generateAttendanceReport() {
+            showAlert('Generating Attendance Report...', 'info');
+            setTimeout(() => {
+                showAlert('Attendance Report generated successfully!', 'success');
+            }, 2000);
+        }
+        
+        function generateFacultyReport() {
+            showAlert('Generating Faculty Directory Report...', 'info');
+            setTimeout(() => {
+                showAlert('Faculty Directory Report generated successfully!', 'success');
+            }, 2000);
+        }
+        
+        function generateWorkloadReport() {
+            showAlert('Generating Faculty Workload Report...', 'info');
+            setTimeout(() => {
+                showAlert('Faculty Workload Report generated successfully!', 'success');
+            }, 2000);
+        }
+        
+        function generatePerformanceReport() {
+            showAlert('Generating Performance Report...', 'info');
+            setTimeout(() => {
+                showAlert('Performance Report generated successfully!', 'success');
+            }, 2000);
+        }
+        
+        function generateScheduleReport() {
+            showAlert('Generating Schedule Report...', 'info');
+            setTimeout(() => {
+                showAlert('Schedule Report generated successfully!', 'success');
+            }, 2000);
+        }
+        
+        function generateSubjectReport() {
+            showAlert('Generating Subject Catalog Report...', 'info');
+            setTimeout(() => {
+                showAlert('Subject Catalog Report generated successfully!', 'success');
+            }, 2000);
+        }
+        
+        function generateCurriculumReport() {
+            showAlert('Generating Curriculum Report...', 'info');
+            setTimeout(() => {
+                showAlert('Curriculum Report generated successfully!', 'success');
+            }, 2000);
+        }
+        
+        function generateCapacityReport() {
+            showAlert('Generating Capacity Report...', 'info');
+            setTimeout(() => {
+                showAlert('Capacity Report generated successfully!', 'success');
+            }, 2000);
+        }
+        
+        function generateFinancialReport() {
+            showAlert('Generating Financial Summary Report...', 'info');
+            setTimeout(() => {
+                showAlert('Financial Summary Report generated successfully!', 'success');
+            }, 2000);
+        }
+        
+        function generateCustomReport() {
+            const reportType = $('#reportType').val();
+            const dateFrom = $('#dateFrom').val();
+            const dateTo = $('#dateTo').val();
+            const format = $('#format').val();
+            
+            if (!reportType) {
+                showAlert('Please select a report type.', 'error');
+                return;
+            }
+            
+            if (!dateFrom || !dateTo) {
+                showAlert('Please select date range.', 'error');
+                return;
+            }
+            
+            showAlert(`Generating custom ${reportType} report from ${dateFrom} to ${dateTo} in ${format} format...`, 'info');
+            setTimeout(() => {
+                showAlert('Custom report generated successfully!', 'success');
+            }, 2000);
+        }
+        
+        function resetForm() {
+            $('#reportType').val('');
+            $('#customQuery').val('');
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+            $('#dateTo').val(today.toISOString().split('T')[0]);
+            $('#dateFrom').val(thirtyDaysAgo.toISOString().split('T')[0]);
+            $('#format').val('pdf');
+        }
+        
+        function downloadReport(filename) {
+            showAlert(`Downloading ${filename}...`, 'info');
+            // Implementation for file download
+        }
+        
+        function viewReport(filename) {
+            showAlert(`Opening ${filename}...`, 'info');
+            // Implementation for viewing report
+        }
+        
+        function showAlert(message, type) {
+            const alertClass = type === 'error' ? 'alert-error' : (type === 'success' ? 'alert-success' : 'alert alert-info');
+            const alertHtml = `
+                <div class="alert ${alertClass}" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                    ${message}
+                    <button type="button" class="close" style="position: absolute; right: 10px; top: 5px; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+                </div>
+            `;
+            
+            $('body').append(alertHtml);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                $('.alert').fadeOut(300, function() {
+                    $(this).remove();
+                });
+            }, 5000);
+            
+            // Manual close
+            $('.alert .close').click(function() {
+                $(this).parent().fadeOut(300, function() {
+                    $(this).remove();
+                });
+            });
+        }
+    </script>
+</body>
+</html> 

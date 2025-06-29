@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Faculty Management - BMW SIS</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/admin-style.css?v=2.0}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" th:src="@{/js/admin-main.js}"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="profile-section">
+            <div class="profile-avatar">
+                <img src="/BMWlogo.png" alt="BMW Logo" style="width: 60px; height: 60px; border-radius: 50%; object-fit: contain; background: white; padding: 8px;"/>
+            </div>
+            <div class="profile-name" th:text="${admin.firstName + ' ' + admin.lastName}">Administrator</div>
+            <div class="profile-role">System Administrator</div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Main Navigation</div>
+            <div class="nav-buttons">
+                <a href="/admin/dashboard">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/admin/simple-students">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>Students</span>
+                </a>
+                <a href="/admin/faculty" class="active">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <span>Faculty</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Academic Management</div>
+            <div class="nav-buttons">
+                <a href="/admin/programs">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Programs</span>
+                </a>
+                <a href="/admin/subjects">
+                    <i class="fas fa-book"></i>
+                    <span>Subjects</span>
+                </a>
+                <a href="/admin/schedules">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Schedules</span>
+                </a>
+                <a href="/admin/curriculum">
+                    <i class="fas fa-list-alt"></i>
+                    <span>Curriculum</span>
+                </a>
+                <a href="/admin/sections">
+                    <i class="fas fa-building"></i>
+                    <span>Sections</span>
+                </a>
+                <a href="/admin/enrollment">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Enrollment</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">System</div>
+            <div class="nav-buttons">
+                <a href="/admin/settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </div>
+        
+        <a href="/admin/logout" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </a>
+    </div>
+    
+    <div class="main-content">
+        <div class="content-header">
+            <div class="header-content">
+                <h1>
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    Faculty Management
+                </h1>
+                <p>Manage faculty members, positions, and departments</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i>
+                    Add New Faculty
+                </button>
+            </div>
+        </div>
+        
+        <!-- Alert Messages -->
+        <div th:if="${success}" class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <span th:text="${success}"></span>
+        </div>
+        <div th:if="${error}" class="alert alert-error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span th:text="${error}"></span>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" th:text="${faculty != null ? faculty.size() : 0}">0</div>
+                    <div class="stat-label">Total Faculty</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="activeFaculty">0</div>
+                    <div class="stat-label">Active Faculty</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="professors">0</div>
+                    <div class="stat-label">Professors</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="departments">0</div>
+                    <div class="stat-label">Departments</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>
+                <i class="fas fa-address-book"></i>
+                Faculty Directory
+            </h2>
+            
+            <div class="controls">
+                <input type="text" class="search-box" id="searchInput" placeholder="Search faculty by name, email, or department...">
+                <div class="control-buttons">
+                    <button class="btn btn-info" onclick="exportToCSV()">
+                        <i class="fas fa-file-csv"></i>
+                        Export CSV
+                    </button>
+                    <button class="btn btn-success" onclick="refreshTable()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+            
+            <div th:if="${faculty == null or faculty.empty}" class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <h3>No Faculty Found</h3>
+                <p>No faculty members are currently registered in the system.</p>
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i>
+                    Add First Faculty Member
+                </button>
+            </div>
+            
+            <div th:unless="${faculty == null or faculty.empty}" class="table-container">
+                <table id="facultyTable">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-id-card"></i> Faculty ID</th>
+                            <th><i class="fas fa-user"></i> Full Name</th>
+                            <th><i class="fas fa-envelope"></i> Email</th>
+                            <th><i class="fas fa-building"></i> Department</th>
+                            <th><i class="fas fa-user-tie"></i> Position</th>
+                            <th><i class="fas fa-circle"></i> Status</th>
+                            <th><i class="fas fa-cogs"></i> Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="faculty : ${faculty}">
+                            <td><strong th:text="${faculty.facultyId != null ? faculty.facultyId : faculty.id}">FAC-001</strong></td>
+                            <td th:text="${faculty.firstName + ' ' + faculty.lastName}">John Doe</td>
+                            <td th:text="${faculty.email}">john@example.com</td>
+                            <td th:text="${faculty.department}">Computer Science</td>
+                            <td th:text="${faculty.position != null ? faculty.position : 'Instructor'}">Professor</td>
+                            <td>
+                                <span th:class="'badge ' + ((${faculty.status} != null and ${faculty.status} == 'ACTIVE') ? 'badge-success' : 'badge-danger')" 
+                                      th:text="${faculty.status != null ? faculty.status : 'ACTIVE'}">Active</span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-info btn-sm" th:onclick="'viewFaculty(' + ${faculty.id} + ')'" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-success btn-sm" th:onclick="'viewPortalAccess(' + ${faculty.id} + ')'" title="Portal Access Info">
+                                        <i class="fas fa-key"></i>
+                                    </button>
+                                    <button class="btn btn-warning btn-sm" th:onclick="'testPortalAccess(' + ${faculty.id} + ')'" title="Test Portal Access">
+                                        <i class="fas fa-check-circle"></i>
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm" th:onclick="'viewSectionAssignments(' + ${faculty.id} + ')'" title="Section Assignments">
+                                        <i class="fas fa-users-class"></i>
+                                    </button>
+                                    <button class="btn btn-primary btn-sm" th:onclick="'editFaculty(' + ${faculty.id} + ')'" title="Edit Faculty">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" th:onclick="'deleteFaculty(' + ${faculty.id} + ')'" title="Delete Faculty">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add/Edit Faculty Modal -->
+    <div id="facultyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">
+                    <i class="fas fa-user-plus"></i>
+                    Add New Faculty
+                </h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <strong>Automatic Faculty Portal Access:</strong> When you add a faculty member, they will automatically get access to their Faculty Portal. A secure password will be generated if not provided.
+            </div>
+            
+            <form id="facultyForm" method="post" th:action="@{/admin/faculty/add}">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="firstName">
+                            <i class="fas fa-user"></i>
+                            First Name
+                        </label>
+                        <input type="text" id="firstName" name="firstName" required placeholder="John">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lastName">
+                            <i class="fas fa-user"></i>
+                            Last Name
+                        </label>
+                        <input type="text" id="lastName" name="lastName" required placeholder="Doe">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">
+                            <i class="fas fa-envelope"></i>
+                            Email
+                        </label>
+                        <input type="email" id="email" name="email" required placeholder="john.doe@bmw.edu">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="department">
+                            <i class="fas fa-building"></i>
+                            Department
+                        </label>
+                        <select id="department" name="department" required>
+                            <option value="">Select Department</option>
+                            <option th:each="program : ${programs}" 
+                                    th:value="${program.department}" 
+                                    th:text="${program.department}">Program Department</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="position">
+                            <i class="fas fa-user-tie"></i>
+                            Position
+                        </label>
+                        <select id="position" name="position" required>
+                            <option value="">Select Position</option>
+                            <option value="Professor">Professor</option>
+                            <option value="Associate Professor">Associate Professor</option>
+                            <option value="Assistant Professor">Assistant Professor</option>
+                            <option value="Instructor">Instructor</option>
+                            <option value="Lecturer">Lecturer</option>
+                            <option value="Department Head">Department Head</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="status">
+                            <i class="fas fa-toggle-on"></i>
+                            Status
+                        </label>
+                        <select id="status" name="status" required>
+                            <option value="">Select Status</option>
+                            <option value="ACTIVE">Active</option>
+                            <option value="INACTIVE">Inactive</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="facultyId">
+                            <i class="fas fa-id-card"></i>
+                            Faculty ID
+                        </label>
+                        <input type="text" id="facultyId" name="facultyId" required placeholder="FAC-001">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">
+                            <i class="fas fa-phone"></i>
+                            Phone Number
+                        </label>
+                        <input type="tel" id="phone" name="phone" placeholder="+1234567890">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">
+                            <i class="fas fa-lock"></i>
+                            Password (Optional - Auto-generated if empty)
+                        </label>
+                        <input type="password" id="password" name="password" placeholder="Leave empty to auto-generate secure password">
+                        <small style="color: #666; font-size: 12px;">If empty, a secure password will be automatically generated</small>
+                    </div>
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">
+                        <i class="fas fa-times"></i>
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Save Faculty
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // Utility function for showing alerts
+        function showAlert(message, type = 'info') {
+            console.log(`Alert (${type}):`, message);
+            alert(message);
+        }
+        
+        $(document).ready(function() {
+            console.log('Faculty management page loaded');
+            updateStatistics();
+            
+            // Search functionality
+            $('#searchInput').on('keyup', function() {
+                const searchValue = $(this).val().toLowerCase();
+                $('#facultyTable tbody tr').each(function() {
+                    const text = $(this).text().toLowerCase();
+                    $(this).toggle(text.includes(searchValue));
+                });
+            });
+        });
+        
+        function updateStatistics() {
+            const rows = $('#facultyTable tbody tr');
+            
+            if (rows.length > 0) {
+                const totalFaculty = rows.length;
+                const activeCount = rows.filter(function() {
+                    return $(this).find('.badge-success').length > 0;
+                }).length;
+                const professorCount = rows.filter(function() {
+                    return $(this).find('td:eq(4)').text().trim().includes('Professor');
+                }).length;
+                
+                // Count unique departments
+                const departments = new Set();
+                rows.each(function() {
+                    const dept = $(this).find('td:eq(3)').text().trim();
+                    if (dept && dept !== '') departments.add(dept);
+                });
+                
+                $('#activeFaculty').text(activeCount);
+                $('#professors').text(professorCount);
+                $('#departments').text(departments.size);
+            } else {
+                $('#activeFaculty').text('0');
+                $('#professors').text('0');
+                $('#departments').text('0');
+            }
+            
+            // Add loaded class to animate cards
+            $('.stat-card').addClass('loaded');
+        }
+        
+        function openAddModal() {
+            console.log('Opening add faculty modal');
+            $('#modalTitle').text('Add New Faculty');
+            $('#facultyForm').attr('action', '/admin/faculty/add');
+            $('#facultyForm')[0].reset();
+            $('#facultyModal').show();
+        }
+        
+        function closeModal() {
+            $('#facultyModal').hide();
+        }
+        
+        function viewFaculty(id) {
+            console.log('Viewing faculty:', id);
+            
+            // Use jQuery AJAX instead of fetch for better compatibility
+            $.ajax({
+                url: '/admin/faculty/' + id,
+                type: 'GET',
+                success: function(faculty) {
+                    console.log('Faculty data received for viewing:', faculty);
+                    
+                    // Create a nice formatted display
+                    const displayText = `Faculty Details:
+
+ID: ${faculty.id}
+Faculty ID: ${faculty.facultyId || 'Not set'}
+Name: ${faculty.firstName} ${faculty.lastName}
+Email: ${faculty.email}
+Department: ${faculty.department}
+Position: ${faculty.position || 'Instructor'}
+Status: ${faculty.status || 'ACTIVE'}
+Phone: ${faculty.phone || 'Not provided'}
+
+💡 This faculty member has access to the Faculty Portal!`;
+                    
+                    alert(displayText);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching faculty data for viewing:', xhr.responseText);
+                    console.error('Status:', status);
+                    console.error('Error:', error);
+                    alert('Error fetching faculty data: ' + (xhr.responseText || 'Faculty not found'));
+                }
+            });
+        }
+        
+        function editFaculty(id) {
+            console.log('Editing faculty:', id);
+            
+            // Use jQuery AJAX instead of fetch for better compatibility
+            $.ajax({
+                url: '/admin/faculty/' + id,
+                type: 'GET',
+                success: function(faculty) {
+                    console.log('Faculty data received:', faculty);
+                    
+                    // Update modal title and form action
+                    $('#modalTitle').html('<i class="fas fa-edit"></i> Edit Faculty');
+                    $('#facultyForm').attr('action', '/admin/faculty/update/' + id);
+                    
+                    // Populate all form fields
+                    $('#firstName').val(faculty.firstName || '');
+                    $('#lastName').val(faculty.lastName || '');
+                    $('#email').val(faculty.email || '');
+                    $('#department').val(faculty.department || '');
+                    $('#position').val(faculty.position || 'Instructor');
+                    $('#status').val(faculty.status || 'ACTIVE');
+                    $('#facultyId').val(faculty.facultyId || '');
+                    $('#phone').val(faculty.phone || '');
+                    
+                    // Don't populate password for security reasons
+                    $('#password').val('');
+                    
+                    console.log('Form populated successfully');
+                    
+                    // Show the modal
+                    $('#facultyModal').show();
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching faculty data:', xhr.responseText);
+                    console.error('Status:', status);
+                    console.error('Error:', error);
+                    alert('Error fetching faculty data: ' + (xhr.responseText || 'Faculty not found'));
+                }
+            });
+        }
+        
+        function deleteFaculty(id) {
+            if (confirm('Are you sure you want to delete this faculty member? This action cannot be undone.')) {
+                console.log('Deleting faculty:', id);
+                
+                // Use jQuery AJAX instead of fetch for better compatibility
+                $.ajax({
+                    url: '/admin/faculty/delete/' + id,
+                    type: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(response) {
+                        console.log('Faculty deleted successfully:', response);
+                        showAlert('Faculty deleted successfully', 'success');
+                        location.reload();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error deleting faculty:', xhr.responseText);
+                        console.error('Status:', status);
+                        console.error('Error:', error);
+                        showAlert('Error deleting faculty: ' + (xhr.responseText || error), 'error');
+                    }
+                });
+            }
+        }
+        
+        function viewPortalAccess(id) {
+            console.log('Viewing portal access for faculty:', id);
+            
+            // Use jQuery AJAX instead of fetch for better compatibility
+            $.ajax({
+                url: '/admin/faculty/' + id + '/portal-access',
+                type: 'GET',
+                success: function(accessInfo) {
+                    console.log('Portal access info received:', accessInfo);
+                    showAlert('Faculty Portal Access Information:\n\n' + accessInfo + 
+                             '\n\n✅ This faculty can now login to their Faculty Portal!', 'info');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching portal access info:', xhr.responseText);
+                    showAlert('Error fetching portal access information: ' + (xhr.responseText || error), 'error');
+                }
+            });
+        }
+        
+        function testPortalAccess(id) {
+            console.log('Testing portal access for faculty:', id);
+            const password = prompt('Enter faculty password to test portal access:');
+            if (password) {
+                // Use jQuery AJAX instead of fetch for better compatibility
+                $.ajax({
+                    url: '/admin/faculty/' + id + '/test-access',
+                    type: 'POST',
+                    data: {
+                        password: password
+                    },
+                    success: function(result) {
+                        console.log('Portal access test result:', result);
+                        showAlert('Portal Access Test Result:\n\n' + result, 'info');
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error testing portal access:', xhr.responseText);
+                        showAlert('Error testing portal access: ' + (xhr.responseText || error), 'error');
+                    }
+                });
+            }
+        }
+        
+        function viewSectionAssignments(id) {
+            console.log('Viewing section assignments for faculty:', id);
+            
+            // Use jQuery AJAX instead of fetch for better compatibility
+            $.ajax({
+                url: '/admin/faculty/' + id + '/section-assignments',
+                type: 'GET',
+                success: function(assignmentInfo) {
+                    console.log('Section assignments received:', assignmentInfo);
+                    showAlert('Faculty Section Assignments:\n\n' + assignmentInfo + 
+                             '\n\n💡 Faculty can view their sections in Faculty Portal → Classes/Dashboard', 'info');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching section assignments:', xhr.responseText);
+                    showAlert('Error fetching section assignments: ' + (xhr.responseText || error), 'error');
+                }
+            });
+        }
+        
+        function exportToCSV() {
+            console.log('Exporting to CSV...');
+            alert('CSV export functionality would be implemented here');
+        }
+        
+        function refreshTable() {
+            console.log('Refreshing table...');
+            location.reload();
+        }
+        
+        // Close modal with Escape key
+        $(document).keydown(function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+        
+        // Close modal when clicking outside
+        $(window).click(function(event) {
+            if (event.target.id === 'facultyModal') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html> 

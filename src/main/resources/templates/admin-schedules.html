@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Schedule Management - BMW SIS</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/admin-style.css?v=3.0}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" th:src="@{/js/admin-main.js?v=2.0}"></script>
+    
+    <style>
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .alert-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            font-weight: bold;
+            float: right;
+            cursor: pointer;
+            opacity: 0.7;
+            margin-left: 15px;
+        }
+        
+        .alert-close:hover {
+            opacity: 1;
+        }
+        
+        .dynamic-alert {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        /* Enhanced styles for faculty schedule cards */
+        .faculty-schedule-card:hover { 
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important; 
+            transform: translateY(-2px); 
+        }
+        .schedule-item:hover { 
+            background: #e9ecef !important; 
+            transform: translateX(4px); 
+        }
+        .expand-icon.rotated { 
+            transform: rotate(180deg) !important; 
+        }
+    </style>
+
+</head>
+<body>
+    <div class="sidebar">
+        <div class="profile-section">
+            <div class="profile-avatar">
+                <img src="/BMWlogo.png" alt="BMW Logo" style="width: 60px; height: 60px; border-radius: 50%; object-fit: contain; background: white; padding: 8px;"/>
+            </div>
+            <div class="profile-name" th:text="${admin != null ? admin.firstName + ' ' + admin.lastName : 'Administrator'}">Administrator</div>
+            <div class="profile-role">System Administrator</div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Main Navigation</div>
+            <div class="nav-buttons">
+                <a href="/admin/dashboard">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/admin/simple-students">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>Students</span>
+                </a>
+                <a href="/admin/faculty">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <span>Faculty</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Academic Management</div>
+            <div class="nav-buttons">
+                <a href="/admin/programs">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Programs</span>
+                </a>
+                <a href="/admin/subjects">
+                    <i class="fas fa-book"></i>
+                    <span>Subjects</span>
+                </a>
+                <a href="/admin/schedules" class="active">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Schedules</span>
+                </a>
+                <a href="/admin/curriculum">
+                    <i class="fas fa-list-alt"></i>
+                    <span>Curriculum</span>
+                </a>
+                <a href="/admin/sections">
+                    <i class="fas fa-building"></i>
+                    <span>Sections</span>
+                </a>
+                <a href="/admin/enrollment">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Enrollment</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">System</div>
+            <div class="nav-buttons">
+                <a href="/admin/settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </div>
+
+        <a href="/admin/logout" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </a>
+    </div>
+    
+    <div class="main-content">
+        <div class="content-header">
+            <div>
+                <h1>
+                    <i class="fas fa-calendar-alt"></i>
+                    Schedule Management
+                </h1>
+                <p>Manage class schedules, time slots, and room assignments</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i>
+                    Add New Schedule
+                </button>
+            </div>
+        </div>
+        
+        <!-- Alert Messages -->
+        <div th:if="${success}" class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <span th:text="${success}"></span>
+        </div>
+        <div th:if="${error}" class="alert alert-error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span th:text="${error}"></span>
+        </div>
+        
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" th:text="${schedules != null ? schedules.size() : 0}">0</div>
+                    <div class="stat-label">Total Schedules</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="activeSchedules">0</div>
+                    <div class="stat-label">Active Classes</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-door-open"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="roomCount">0</div>
+                    <div class="stat-label">Rooms Used</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="facultyCount">0</div>
+                    <div class="stat-label">Faculty Assigned</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Schedule Directory Section -->
+        <div class="section">
+            <h2>
+                <i class="fas fa-calendar"></i>
+                Schedule Directory
+            </h2>
+            
+            <!-- Enhanced Search and Filter Controls -->
+            <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 24px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+                <input type="text" style="flex: 1; min-width: 300px; padding: 12px 16px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 14px;" 
+                       id="searchFacultyInput" placeholder="🔍 Search by faculty name, subject, or section...">
+                <select style="padding: 12px 16px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 14px; min-width: 150px;" 
+                        id="sectionFilterNew" onchange="filterFacultySchedules()">
+                    <option value="">All Sections</option>
+                    <option th:each="section : ${sections}" 
+                            th:value="${section.sectionCode}" 
+                            th:text="${section.sectionCode}"
+                            th:selected="${section.sectionCode == selectedSection}">
+                    </option>
+                </select>
+                <select style="padding: 12px 16px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 14px; min-width: 150px;" 
+                        id="dayFilterNew" onchange="filterFacultySchedules()">
+                    <option value="">All Days</option>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                    <option value="Saturday">Saturday</option>
+                </select>
+                <select style="padding: 12px 16px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 14px; min-width: 150px;" 
+                        id="departmentFilterNew" onchange="filterFacultySchedules()">
+                    <option value="">All Departments</option>
+                    <option value="IT">Information Technology</option>
+                    <option value="CS">Computer Science</option>
+                    <option value="IS">Information Systems</option>
+                </select>
+                <button class="btn btn-primary" onclick="expandAllFaculty()">
+                    <i class="fas fa-expand-arrows-alt"></i> Expand All
+                </button>
+                <button class="btn btn-secondary" onclick="collapseAllFaculty()">
+                    <i class="fas fa-compress-arrows-alt"></i> Collapse All
+                </button>
+                <button class="btn btn-info" onclick="toggleScheduleView()">
+                    <i class="fas fa-table"></i> Table View
+                </button>
+            </div>
+            
+            <!-- Old controls for backward compatibility -->
+            <div class="controls" style="display: none;">
+                <input type="text" class="search-box" id="searchInput" placeholder="🔍 Search schedules by subject, faculty, or room...">
+                <select id="sectionFilter" class="search-box" onchange="filterBySection()">
+                    <option value="">All Sections</option>
+                    <option th:each="section : ${sections}" 
+                            th:value="${section.sectionCode}" 
+                            th:text="${section.sectionCode}"
+                            th:selected="${section.sectionCode == selectedSection}">
+                    </option>
+                </select>
+                <div class="control-buttons">
+                    <button class="btn btn-info" onclick="exportToCSV()">
+                        <i class="fas fa-file-csv"></i>
+                        Export CSV
+                    </button>
+                    <button class="btn btn-success" onclick="refreshTable()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Faculty Schedule Cards -->
+            <div id="facultyScheduleCards">
+                <div th:if="${facultySchedules == null or facultySchedules.empty}" 
+                     style="text-align: center; padding: 60px 20px; color: #666; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <i class="fas fa-calendar-alt" style="font-size: 64px; color: #dee2e6; margin-bottom: 20px;"></i>
+                    <h3>No Faculty Schedules Found</h3>
+                    <p>Faculty members will appear here once they have schedules assigned.</p>
+                    <button class="btn btn-primary" onclick="openAddModal()">
+                        <i class="fas fa-plus"></i>
+                        Add First Schedule
+                    </button>
+                </div>
+                
+                <div th:each="entry : ${facultySchedules}" 
+                     class="faculty-schedule-card" 
+                     th:data-faculty-id="${entry.key.id}"
+                     th:data-faculty-name="${entry.key.firstName + ' ' + entry.key.lastName}"
+                     th:data-department="${entry.key.department}"
+                     style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 16px; overflow: hidden; transition: all 0.3s ease; border-left: 4px solid #17a2b8;">
+                    
+                    <div class="faculty-card-header" onclick="toggleFacultySchedules(this)" 
+                         style="padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-bottom: 1px solid #dee2e6;">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #17a2b8, #138496); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;"
+                                 th:text="${entry.key.firstName.substring(0,1) + entry.key.lastName.substring(0,1)}">JD</div>
+                            <div>
+                                <h3 style="margin: 0; color: #333; font-size: 18px;" th:text="${entry.key.firstName + ' ' + entry.key.lastName}">Dr. John Doe</h3>
+                                <div style="color: #666; font-size: 14px; margin-top: 4px;">
+                                    <span th:text="${entry.key.facultyId}">FAC001</span> • 
+                                    <span th:text="${entry.key.department}">Information Technology</span> • 
+                                    <span th:text="${entry.key.position ?: 'Faculty'}">Professor</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 20px; align-items: center;">
+                            <div style="background: #17a2b8; color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 500;" 
+                                 th:text="${entry.value.size() + ' schedule' + (entry.value.size() != 1 ? 's' : '')}">5 schedules</div>
+                            <i class="fas fa-chevron-down expand-icon" style="transition: transform 0.3s ease; color: #17a2b8; font-size: 20px;"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="faculty-schedules" style="display: none; padding: 0 20px 20px 20px;">
+                        <div th:if="${entry.value.empty}" style="text-align: center; color: #666; font-style: italic; padding: 20px; background: #f8f9fa; border-radius: 8px; margin: 10px 0;">
+                            No schedules found for this faculty member.
+                        </div>
+                        
+                        <div th:each="schedule : ${entry.value}" 
+                             class="schedule-item"
+                             style="background: #f8f9fa; border-radius: 8px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #28a745; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s ease;"
+                             th:data-day="${schedule.dayOfWeek}"
+                             th:data-section="${schedule.sectionCode}">
+                            
+                            <div style="flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; align-items: center;">
+                                <div>
+                                    <div style="font-weight: bold; color: #333; font-size: 16px;" th:text="${schedule.subject != null ? schedule.subject.subjectCode : 'N/A'}">IT-101</div>
+                                    <div style="color: #666; font-size: 14px; margin-top: 4px;" th:text="${schedule.subject != null ? schedule.subject.subjectName : 'Unknown Subject'}">Introduction to Programming</div>
+                                </div>
+                                
+                                <div style="text-align: center;">
+                                    <div style="display: inline-block; background: #007bff; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 500; margin-bottom: 4px;" th:text="${schedule.dayOfWeek}">Monday</div>
+                                    <div style="color: #666; font-size: 13px;" th:text="${schedule.startTime + ' - ' + schedule.endTime}">8:00 - 11:00</div>
+                                </div>
+                                
+                                <div style="text-align: center;">
+                                    <div style="display: inline-block; background: #6c757d; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 500; margin-bottom: 4px;" th:text="${schedule.room}">Room 101</div>
+                                    <div style="color: #666; font-size: 13px;" th:text="${schedule.sectionCode}">IT-1A</div>
+                                </div>
+                                
+                                <div style="text-align: center;">
+                                    <div style="display: inline-block; background: #28a745; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 500; margin-bottom: 4px;" th:text="${schedule.maxSlots + ' slots'}">30 slots</div>
+                                    <div style="color: #666; font-size: 13px;" th:text="${schedule.semester + ' Sem ' + schedule.academicYear}">1st Sem 2024-2025</div>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 8px; margin-left: 16px;">
+                                <button style="width: 36px; height: 36px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; font-size: 14px; background: #007bff; color: white;" 
+                                        th:onclick="'viewSchedule(' + ${schedule.id} + ')'"
+                                        title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button style="width: 36px; height: 36px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; font-size: 14px; background: #17a2b8; color: white;" 
+                                        th:onclick="'editSchedule(' + ${schedule.id} + ')'"
+                                        title="Edit Schedule">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button style="width: 36px; height: 36px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; font-size: 14px; background: #dc3545; color: white;" 
+                                        th:onclick="'deleteSchedule(' + ${schedule.id} + ')'"
+                                        title="Delete Schedule">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Original Table View (hidden by default) -->
+            <div id="originalTableView" style="display: none;">
+                <div th:if="${schedules == null || schedules.empty}" class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h3>No Schedules Found</h3>
+                    <p>No class schedules are currently configured in the system.</p>
+                    <button class="btn btn-primary" onclick="openAddModal()">
+                        <i class="fas fa-plus"></i>
+                        Add First Schedule
+                    </button>
+                </div>
+                
+                <div th:unless="${schedules == null || schedules.empty}" class="table-container">
+                    <table id="schedulesTable">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-users"></i> Section</th>
+                                <th><i class="fas fa-book"></i> Subject</th>
+                                <th><i class="fas fa-chalkboard-teacher"></i> Faculty</th>
+                                <th><i class="fas fa-calendar-day"></i> Day</th>
+                                <th><i class="fas fa-clock"></i> Time</th>
+                                <th><i class="fas fa-door-open"></i> Room</th>
+                                <th><i class="fas fa-users"></i> Max Slots</th>
+                                <th><i class="fas fa-calendar-alt"></i> Semester</th>
+                                <th><i class="fas fa-graduation-cap"></i> Academic Year</th>
+                                <th><i class="fas fa-cogs"></i> Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="schedule : ${schedules}">
+                                <td>
+                                    <strong th:text="${schedule.sectionCode}">IT-1A</strong>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong th:text="${schedule.subject.subjectCode}">CS101</strong><br>
+                                        <small th:text="${schedule.subject.subjectName}">Programming</small>
+                                    </div>
+                                </td>
+                                <td th:text="${schedule.faculty.firstName + ' ' + schedule.faculty.lastName}">John Doe</td>
+                                <td>
+                                    <span class="badge badge-info" th:text="${schedule.dayOfWeek}">Monday</span>
+                                </td>
+                                <td>
+                                    <strong th:text="${schedule.startTime + ' - ' + schedule.endTime}">08:00 - 10:00</strong>
+                                </td>
+                                <td>
+                                    <span class="badge badge-secondary" th:text="${schedule.room}">Room 101</span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-primary" th:text="${schedule.maxSlots}">30</span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-success" th:text="${schedule.semester + ' Semester'}">1st Semester</span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-warning" th:text="${schedule.academicYear}">2024-2025</span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn btn-info btn-sm" th:onclick="'viewSchedule(' + ${schedule.id} + ')'" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-primary btn-sm" th:onclick="'editSchedule(' + ${schedule.id} + ')'" title="Edit Schedule">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-danger btn-sm" th:onclick="'deleteSchedule(' + ${schedule.id} + ')'" title="Delete Schedule">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add/Edit Schedule Modal -->
+    <div id="scheduleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">
+                    <i class="fas fa-calendar-plus"></i>
+                    Add New Schedule
+                </h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            
+            <form id="scheduleForm" method="post" th:action="@{/admin/schedules/add}">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="sectionCode">
+                            <i class="fas fa-users"></i>
+                            Section
+                        </label>
+                        <select id="sectionCode" name="sectionCode" required>
+                            <option value="">Select Section</option>
+                            <option th:each="section : ${sections}" 
+                                    th:value="${section.sectionCode}" 
+                                    th:text="${section.sectionCode + ' - ' + section.sectionName}">
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="subjectId">
+                            <i class="fas fa-book"></i>
+                            Subject
+                        </label>
+                        <select id="subjectId" name="subjectId" required>
+                            <option value="">Select Subject</option>
+                            <option th:each="subject : ${subjects}" 
+                                    th:value="${subject.id}" 
+                                    th:text="${subject.subjectCode + ' - ' + subject.subjectName}">
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="facultyId">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            Faculty
+                        </label>
+                        <select id="facultyId" name="faculty.id" required>
+                            <option value="">Select Faculty</option>
+                            <option th:each="faculty : ${faculty}" 
+                                    th:value="${faculty.id}" 
+                                    th:text="${faculty.firstName + ' ' + faculty.lastName}">
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="dayOfWeek">
+                            <i class="fas fa-calendar-day"></i>
+                            Day of Week
+                        </label>
+                        <select id="dayOfWeek" name="dayOfWeek" required>
+                            <option value="">Select Day</option>
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Saturday">Saturday</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="startTime">
+                            <i class="fas fa-clock"></i>
+                            Start Time
+                        </label>
+                        <input type="time" id="startTime" name="startTime" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="endTime">
+                            <i class="fas fa-clock"></i>
+                            End Time
+                        </label>
+                        <input type="time" id="endTime" name="endTime" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="room">
+                            <i class="fas fa-door-open"></i>
+                            Room
+                        </label>
+                        <input type="text" id="room" name="room" required placeholder="e.g., Room 101">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="maxSlots">
+                            <i class="fas fa-users"></i>
+                            Maximum Slots
+                        </label>
+                        <input type="number" id="maxSlots" name="maxSlots" required min="1" max="100" placeholder="e.g., 30">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="semester">
+                            <i class="fas fa-calendar-alt"></i>
+                            Semester
+                        </label>
+                        <select id="semester" name="semester" required>
+                            <option value="">Select Semester</option>
+                            <option value="1st" id="firstSemesterOption">1st Semester</option>
+                            <option value="2nd" id="secondSemesterOption">2nd Semester</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="academicYear">
+                            <i class="fas fa-graduation-cap"></i>
+                            Academic Year
+                        </label>
+                        <select id="academicYear" name="academicYear" required>
+                            <option value="">Select Academic Year</option>
+                            <option value="2023-2024">2023-2024</option>
+                            <option value="2024-2025" selected>2024-2025</option>
+                            <option value="2025-2026">2025-2026</option>
+                            <option value="2026-2027">2026-2027</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">
+                        <i class="fas fa-times"></i>
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Save Schedule
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        $(document).ready(function() {
+            updateStatistics();
+            updateCurrentSemesterDisplay();
+            initializeEventHandlers();
+            initializeFacultyView();
+        });
+        
+        function initializeFacultyView() {
+            // Search functionality for new faculty view
+            $('#searchFacultyInput').on('keyup', function() {
+                filterFacultySchedules();
+            });
+        }
+        
+        // New functions for faculty-organized view
+        function toggleFacultySchedules(header) {
+            const card = header.closest('.faculty-schedule-card');
+            const schedules = card.querySelector('.faculty-schedules');
+            const icon = header.querySelector('.expand-icon');
+            
+            if (schedules.style.display === 'none' || schedules.style.display === '') {
+                schedules.style.display = 'block';
+                icon.classList.add('rotated');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                schedules.style.display = 'none';
+                icon.classList.remove('rotated');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+        
+        function expandAllFaculty() {
+            document.querySelectorAll('.faculty-schedules').forEach(schedules => {
+                schedules.style.display = 'block';
+            });
+            document.querySelectorAll('.expand-icon').forEach(icon => {
+                icon.classList.add('rotated');
+                icon.style.transform = 'rotate(180deg)';
+            });
+        }
+        
+        function collapseAllFaculty() {
+            document.querySelectorAll('.faculty-schedules').forEach(schedules => {
+                schedules.style.display = 'none';
+            });
+            document.querySelectorAll('.expand-icon').forEach(icon => {
+                icon.classList.remove('rotated');
+                icon.style.transform = 'rotate(0deg)';
+            });
+        }
+        
+        function filterFacultySchedules() {
+            const searchValue = $('#searchFacultyInput').val().toLowerCase();
+            const sectionFilter = $('#sectionFilterNew').val();
+            const dayFilter = $('#dayFilterNew').val();
+            const departmentFilter = $('#departmentFilterNew').val();
+            
+            $('.faculty-schedule-card').each(function() {
+                const card = $(this);
+                const facultyName = card.data('faculty-name').toLowerCase();
+                const department = card.data('department');
+                
+                let showCard = true;
+                
+                // Search filter
+                if (searchValue && !facultyName.includes(searchValue)) {
+                    // Also check subjects and sections in schedules
+                    const hasMatchingContent = card.find('.schedule-item').toArray().some(item => 
+                        $(item).text().toLowerCase().includes(searchValue)
+                    );
+                    if (!hasMatchingContent) {
+                        showCard = false;
+                    }
+                }
+                
+                // Department filter
+                if (departmentFilter && department !== departmentFilter) {
+                    showCard = false;
+                }
+                
+                // Section filter - check if any schedule matches
+                if (sectionFilter) {
+                    const hasMatchingSection = card.find('.schedule-item[data-section="' + sectionFilter + '"]').length > 0;
+                    if (!hasMatchingSection) {
+                        showCard = false;
+                    }
+                }
+                
+                // Day filter - check if any schedule matches
+                if (dayFilter) {
+                    const hasMatchingDay = card.find('.schedule-item[data-day="' + dayFilter + '"]').length > 0;
+                    if (!hasMatchingDay) {
+                        showCard = false;
+                    }
+                }
+                
+                card.toggle(showCard);
+            });
+        }
+        
+        function toggleScheduleView() {
+            const cardView = $('#facultyScheduleCards');
+            const tableView = $('#originalTableView');
+            const toggleBtn = $('button[onclick="toggleScheduleView()"]');
+            
+            if (cardView.is(':visible')) {
+                cardView.hide();
+                tableView.show();
+                toggleBtn.html('<i class="fas fa-th-large"></i> Card View');
+                // Show old controls, hide new ones
+                $('.controls').show();
+                $('.controls').prev().show();
+            } else {
+                tableView.hide();
+                cardView.show();
+                toggleBtn.html('<i class="fas fa-table"></i> Table View');
+                // Hide old controls, show new ones
+                $('.controls').hide();
+                $('.controls').prev().show();
+            }
+        }
+        
+        function initializeEventHandlers() {
+            // Search functionality
+            $('#searchInput').on('keyup', function() {
+                const searchValue = $(this).val().toLowerCase();
+                $('#schedulesTable tbody tr').each(function() {
+                    const text = $(this).text().toLowerCase();
+                    $(this).toggle(text.includes(searchValue));
+                });
+            });
+        }
+        
+        function updateStatistics() {
+            const rows = $('#schedulesTable tbody tr');
+            
+            if (rows.length > 0) {
+                const activeSchedules = rows.length;
+                
+                // Count unique rooms
+                const rooms = new Set();
+                rows.each(function() {
+                    const room = $(this).find('td:eq(5)').text().trim();
+                    if (room && room !== '') rooms.add(room);
+                });
+                
+                // Count unique faculty
+                const facultySet = new Set();
+                rows.each(function() {
+                    const faculty = $(this).find('td:eq(2)').text().trim();
+                    if (faculty && faculty !== '') facultySet.add(faculty);
+                });
+                
+                $('#activeSchedules').text(activeSchedules);
+                $('#roomCount').text(rooms.size);
+                $('#facultyCount').text(facultySet.size);
+            } else {
+                $('#activeSchedules').text('0');
+                $('#roomCount').text('0');
+                $('#facultyCount').text('0');
+            }
+            
+            // Add loaded class to animate cards
+            $('.stat-card').addClass('loaded');
+        }
+        
+        function updateCurrentSemesterDisplay() {
+            const now = new Date();
+            const month = now.getMonth() + 1; // JavaScript months are 0-indexed
+            const year = now.getFullYear();
+            
+            let currentSemester, currentAcademicYear;
+            
+            if (month >= 8 || month <= 1) {
+                currentSemester = "1st";
+                currentAcademicYear = (month >= 8) ? year + "-" + (year + 1) : (year - 1) + "-" + year;
+            } else {
+                currentSemester = "2nd";
+                currentAcademicYear = (year - 1) + "-" + year;
+            }
+            
+            $('#semester').val(currentSemester);
+            $('#academicYear').val(currentAcademicYear);
+        }
+        
+        function openAddModal() {
+            console.log('Opening add schedule modal');
+            $('#modalTitle').html('<i class="fas fa-calendar-plus"></i> Add New Schedule');
+            $('#scheduleForm').attr('action', '/admin/schedules/add');
+            $('#scheduleForm')[0].reset();
+            updateCurrentSemesterDisplay();
+            $('#scheduleModal').show();
+        }
+        
+        function closeModal() {
+            $('#scheduleModal').hide();
+        }
+        
+        function filterBySection() {
+            const selectedSection = $('#sectionFilter').val();
+            $('#schedulesTable tbody tr').each(function() {
+                const sectionText = $(this).find('td:eq(0)').text().trim();
+                if (selectedSection === '' || sectionText.includes(selectedSection)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
+        
+        function viewSchedule(id) {
+            console.log('Viewing schedule:', id);
+            fetch('/admin/schedules/' + id)
+                .then(response => response.json())
+                .then(schedule => {
+                    const details = `Schedule Details:
+
+Section: ${schedule.sectionCode}
+Subject: ${schedule.subject.subjectCode} - ${schedule.subject.subjectName}
+Faculty: ${schedule.faculty.firstName} ${schedule.faculty.lastName}
+Day: ${schedule.dayOfWeek}
+Time: ${schedule.startTime} - ${schedule.endTime}
+Room: ${schedule.room}
+Max Slots: ${schedule.maxSlots}
+Semester: ${schedule.semester}
+Academic Year: ${schedule.academicYear}`;
+                    alert(details);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error fetching schedule data: ' + error.message);
+                });
+        }
+        
+        function editSchedule(id) {
+            console.log('Editing schedule:', id);
+            fetch(`/admin/schedules/${id}`)
+                .then(response => response.json())
+                .then(schedule => {
+                    $('#modalTitle').html('<i class="fas fa-edit"></i> Edit Schedule');
+                    $('#scheduleForm').attr('action', '/admin/schedules/update/' + id);
+                    
+                    // Populate form fields
+                    $('#sectionCode').val(schedule.sectionCode);
+                    $('#subjectId').val(schedule.subject.id);
+                    $('#facultyId').val(schedule.faculty.id);
+                    $('#dayOfWeek').val(schedule.dayOfWeek);
+                    $('#startTime').val(schedule.startTime);
+                    $('#endTime').val(schedule.endTime);
+                    $('#room').val(schedule.room);
+                    $('#maxSlots').val(schedule.maxSlots);
+                    $('#semester').val(schedule.semester);
+                    $('#academicYear').val(schedule.academicYear);
+                    
+                    $('#scheduleModal').show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error loading schedule data: ' + error.message);
+                });
+        }
+        
+        function deleteSchedule(id) {
+            console.log('Deleting schedule:', id);
+            if (confirm('Are you sure you want to delete this schedule? This action cannot be undone.')) {
+                fetch(`/admin/schedules/delete/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.text())
+                .then(data => {
+                    if (data.includes('successfully')) {
+                        alert('Schedule deleted successfully');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting schedule: ' + error.message);
+                });
+            }
+        }
+        
+        function exportToCSV() {
+            console.log('Exporting to CSV...');
+            alert('CSV export functionality would be implemented here');
+        }
+        
+        function refreshTable() {
+            console.log('Refreshing table...');
+            location.reload();
+        }
+        
+        // Close modal with Escape key
+        $(document).keydown(function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+        
+        // Close modal when clicking outside
+        $(window).click(function(event) {
+            if (event.target.id === 'scheduleModal') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html> 

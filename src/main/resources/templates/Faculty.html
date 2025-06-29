@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Faculty Login</title>
+    <style>
+        body { font-family: Arial, sans-serif;
+        background: #f4f4f4;}
+        .login-container {
+            max-width: 350px;
+            margin: 60px auto;
+            padding: 24px;
+            border: 1px solid  #b9b8b8;
+            border-radius: 8px;
+            box-shadow: 2px 2px 8px #bcb6b6;
+            background: #F4E2D1
+        }
+        .login-container label {
+            display: block;
+            margin-top: 12px;
+        }
+        .login-container h2 {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.3em;
+        }
+
+
+        .login-container input[type="text"],
+        .login-container input[type="email"],
+        .login-container input[type="password"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 4px;
+            box-sizing: border-box;
+            border: 1.5px  #D6AA9F;
+            border-radius: 4px;
+        }
+        .login-container input[type="text"]:focus,
+        .login-container input[type="email"]:focus,
+        .login-container input[type="password"]:focus {
+            border: 1.5px solid #423736;
+            outline: none;
+        }
+        .login-container button {
+            margin-top: 16px;
+            width: 100%;
+            padding: 10px;
+            background: #D6AA9F;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .login-container button:hover {
+            background: #423736; 
+        }
+        .login-container .links {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .login-container .links a {
+            font-size: 0.95em;
+        }
+        .login-container .links a:first-child {
+            color: #e53935;
+        }
+        .faculty-btn {
+    background: #D6AA9F;
+    color: #fff;
+}
+.faculty-btn:hover {
+    background: #b97b63;
+}
+
+.admin-btn {
+    background: #987185;
+    color: #fff;
+}
+.admin-btn:hover {
+    background: #423736;
+}
+    </style>
+    <script>
+        function togglePassword() {
+            var pwd = document.getElementById("password");
+            pwd.type = pwd.type === "password" ? "text" : "password";
+        }
+    </script>
+</head>
+<body>
+    <div class="login-container">
+        <div style="text-align: center;">
+            <img src="/BMWlogo.png" alt="BMW Logo" width="150"/>
+        </div>
+        <h2>Faculty Login</h2>
+        <form>
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+            <input type="checkbox" onclick="togglePassword()"> Show password
+
+            <div class="links">
+                <a href="#">Forgot Password?</a>
+                <a href="/sis">Return Home</a>
+            </div>
+
+            <button class="faculty-btn" type="submit">Login as Faculty</button>
+            <button class="admin-btn" type="button" onclick="window.location.href='/admin'">Login as Admin</button>
+        </form>
+    </div>
+</body>
+</html>
