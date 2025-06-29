@@ -3,6 +3,7 @@ package com.sisregistration.bmwsis.service;
 import com.sisregistration.bmwsis.entity.*;
 import com.sisregistration.bmwsis.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -48,13 +49,16 @@ public class AdminService {
     @Autowired
     private EnrollmentPeriodRepository enrollmentPeriodRepository;
     
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    
     public Optional<Admin> authenticateAdmin(String adminId, String password) {
         Optional<Admin> adminOpt = adminRepository.findByAdminId(adminId);
         
         if (adminOpt.isPresent()) {
             Admin admin = adminOpt.get();
-            // Simple password comparison - in production, use proper hashing
-            if (password.equals(admin.getPassword())) {
+            // Use BCrypt password matching
+            if (passwordEncoder.matches(password, admin.getPassword())) {
                 return Optional.of(admin);
             }
         }

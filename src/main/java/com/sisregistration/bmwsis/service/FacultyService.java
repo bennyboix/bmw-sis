@@ -3,6 +3,7 @@ package com.sisregistration.bmwsis.service;
 import com.sisregistration.bmwsis.entity.*;
 import com.sisregistration.bmwsis.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,13 +27,16 @@ public class FacultyService {
     @Autowired
     private StudentRepository studentRepository;
     
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    
     public Optional<Faculty> authenticateFaculty(String facultyId, String password) {
         Optional<Faculty> facultyOpt = facultyRepository.findByFacultyId(facultyId);
         
         if (facultyOpt.isPresent()) {
             Faculty faculty = facultyOpt.get();
-            // Simple password comparison - in production, use proper hashing
-            if (password.equals(faculty.getPassword())) {
+            // Use BCrypt password matching
+            if (passwordEncoder.matches(password, faculty.getPassword())) {
                 return Optional.of(faculty);
             }
         }
@@ -162,23 +166,28 @@ public class FacultyService {
         gradeRepository.save(grade);
     }
     
+    public void updateGrade(Grade grade) {
+        gradeRepository.save(grade);
+    }
+    
+    public void deleteGrade(Long gradeId) {
+        gradeRepository.deleteById(gradeId);
+    }
+    
+    public Optional<Faculty> getFacultyById(Long id) {
+        return facultyRepository.findById(id);
+    }
+    
+    public Optional<Faculty> getFacultyByFacultyId(String facultyId) {
+        return facultyRepository.findByFacultyId(facultyId);
+    }
+    
     public Optional<SubjectSchedule> getScheduleById(Long scheduleId) {
         return scheduleRepository.findById(scheduleId);
     }
     
     public Optional<Student> getStudentById(Long studentId) {
         return studentRepository.findById(studentId);
-    }
-    
-    public void updateGrade(Long gradeId, Double gradeValue, String remarks) {
-        Optional<Grade> gradeOpt = gradeRepository.findById(gradeId);
-        if (gradeOpt.isPresent()) {
-            Grade grade = gradeOpt.get();
-            grade.setFinalGrade(gradeValue);
-            grade.setStatus(remarks);
-            grade.calculateFinalRating();
-            gradeRepository.save(grade);
-        }
     }
     
     /**

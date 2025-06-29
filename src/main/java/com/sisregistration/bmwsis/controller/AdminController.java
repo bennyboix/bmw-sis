@@ -157,9 +157,29 @@ public class AdminController {
         
         List<Subject> subjects = adminService.getAllSubjects();
         List<Program> programs = adminService.getAllPrograms();
+        
+        // Group subjects by program
+        java.util.Map<String, List<Subject>> subjectsByProgram = new java.util.LinkedHashMap<>();
+        
+        if (subjects != null) {
+            for (Subject subject : subjects) {
+                String program = subject.getCourse();
+                if (program == null || program.trim().isEmpty()) {
+                    program = "General";
+                }
+                
+                if (!subjectsByProgram.containsKey(program)) {
+                    subjectsByProgram.put(program, new java.util.ArrayList<>());
+                }
+                subjectsByProgram.get(program).add(subject);
+            }
+        }
+        
         model.addAttribute("admin", admin);
         model.addAttribute("subjects", subjects);
+        model.addAttribute("subjectsByProgram", subjectsByProgram);
         model.addAttribute("programs", programs);
+        
         return "admin-subjects";
     }
     

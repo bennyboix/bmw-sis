@@ -51,6 +51,8 @@ A comprehensive **Student Information System** built with Spring Boot, featuring
 | Category | Technology | Version |
 |----------|------------|---------|
 | **Backend** | Spring Boot | 3.5.0 |
+| **Security** | Spring Security | Latest |
+| **Password Hashing** | BCrypt | Built-in |
 | **Database** | MySQL | 8.0+ |
 | **ORM** | Spring Data JPA | Latest |
 | **Template Engine** | Thymeleaf | Latest |

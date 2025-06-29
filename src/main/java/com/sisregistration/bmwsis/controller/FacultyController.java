@@ -256,7 +256,7 @@ public class FacultyController {
         }
         
         try {
-            facultyService.updateGrade(gradeId, gradeValue, remarks);
+            facultyService.updateIndividualGrade(gradeId, gradeValue, null);
             redirectAttributes.addFlashAttribute("success", "Grade updated successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Failed to update grade: " + e.getMessage());

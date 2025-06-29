@@ -4,6 +4,7 @@ import com.sisregistration.bmwsis.entity.*;
 import com.sisregistration.bmwsis.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -35,6 +36,9 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private SectionRepository sectionRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) throws Exception {
@@ -45,23 +49,23 @@ public class DataInitializer implements CommandLineRunner {
             // Create sample students
             if (studentRepository.count() == 0) {
             // 1st Year Students
-            Student student1 = new Student("2024-0001", "password123", "Alice", "Johnson", 
+            Student student1 = new Student("2024-0001", passwordEncoder.encode("password123"), "Alice", "Johnson", 
                                          "alice.johnson@email.com", "Bachelor of Science in Information Technology", 1, "IT-1A");
-            Student student2 = new Student("2024-0002", "password123", "Bob", "Wilson", 
+            Student student2 = new Student("2024-0002", passwordEncoder.encode("password123"), "Bob", "Wilson", 
                                          "bob.wilson@email.com", "Bachelor of Science in Information Technology", 1, "IT-1B");
             
             // 2nd Year Students
-            Student student3 = new Student("2023-0001", "password123", "Carla", "Smith", 
+            Student student3 = new Student("2023-0001", passwordEncoder.encode("password123"), "Carla", "Smith", 
                                          "carla.smith@email.com", "Bachelor of Science in Information Technology", 2, "IT-2A");
-            Student student4 = new Student("2023-0002", "password123", "David", "Brown", 
+            Student student4 = new Student("2023-0002", passwordEncoder.encode("password123"), "David", "Brown", 
                                          "david.brown@email.com", "Bachelor of Science in Information Technology", 2, "IT-2B");
-            Student student5 = new Student("2023-0003", "password123", "Mike", "Johnson", 
+            Student student5 = new Student("2023-0003", passwordEncoder.encode("password123"), "Mike", "Johnson", 
                                          "mike.johnson@email.com", "Bachelor of Science in Information Technology", 2, "IT-2A");
             
             // 3rd Year Students
-            Student student6 = new Student("2022-0001", "password123", "John", "Doe", 
+            Student student6 = new Student("2022-0001", passwordEncoder.encode("password123"), "John", "Doe", 
                                          "john.doe@email.com", "Bachelor of Science in Information Technology", 3, "IT-3A");
-            Student student7 = new Student("2022-0002", "password123", "Jane", "Davis", 
+            Student student7 = new Student("2022-0002", passwordEncoder.encode("password123"), "Jane", "Davis", 
                                          "jane.davis@email.com", "Bachelor of Science in Information Technology", 3, "IT-3B");
             
             studentRepository.save(student1);
@@ -75,11 +79,11 @@ public class DataInitializer implements CommandLineRunner {
 
         // Create sample faculty
         if (facultyRepository.count() == 0) {
-            Faculty faculty1 = new Faculty("FAC-001", "Dr. Maria", "Garcia", "maria.garcia@bmw.edu", "Computer Science", "faculty123");
-            Faculty faculty2 = new Faculty("FAC-002", "Prof. Robert", "Chen", "robert.chen@bmw.edu", "Information Technology", "faculty123");
-            Faculty faculty3 = new Faculty("FAC-003", "Dr. Sarah", "Williams", "sarah.williams@bmw.edu", "Software Engineering", "faculty123");
-            Faculty faculty4 = new Faculty("FAC-004", "Prof. David", "Brown", "david.brown@bmw.edu", "Database Systems", "faculty123");
-            Faculty faculty5 = new Faculty("FAC-005", "Dr. Lisa", "Anderson", "lisa.anderson@bmw.edu", "Network Security", "faculty123");
+            Faculty faculty1 = new Faculty("FAC-001", "Dr. Maria", "Garcia", "maria.garcia@bmw.edu", "Computer Science", passwordEncoder.encode("faculty123"));
+            Faculty faculty2 = new Faculty("FAC-002", "Prof. Robert", "Chen", "robert.chen@bmw.edu", "Information Technology", passwordEncoder.encode("faculty123"));
+            Faculty faculty3 = new Faculty("FAC-003", "Dr. Sarah", "Williams", "sarah.williams@bmw.edu", "Software Engineering", passwordEncoder.encode("faculty123"));
+            Faculty faculty4 = new Faculty("FAC-004", "Prof. David", "Brown", "david.brown@bmw.edu", "Database Systems", passwordEncoder.encode("faculty123"));
+            Faculty faculty5 = new Faculty("FAC-005", "Dr. Lisa", "Anderson", "lisa.anderson@bmw.edu", "Network Security", passwordEncoder.encode("faculty123"));
             
             facultyRepository.save(faculty1);
             facultyRepository.save(faculty2);
@@ -390,7 +394,7 @@ public class DataInitializer implements CommandLineRunner {
             admin.setFirstName("System");
             admin.setLastName("Administrator");
             admin.setEmail("admin@bmw-sis.edu");
-            admin.setPassword("admin123"); // In production, use proper password hashing
+            admin.setPassword(passwordEncoder.encode("admin123"));
             adminRepository.save(admin);
         }
         
@@ -402,7 +406,7 @@ public class DataInitializer implements CommandLineRunner {
             faculty.setLastName("Smith");
             faculty.setEmail("john.smith@bmw-sis.edu");
             faculty.setDepartment("Computer Science");
-            faculty.setPassword("faculty123"); // In production, use proper password hashing
+            faculty.setPassword(passwordEncoder.encode("faculty123"));
             facultyRepository.save(faculty);
         }
         
@@ -414,7 +418,7 @@ public class DataInitializer implements CommandLineRunner {
             faculty.setLastName("Johnson");
             faculty.setEmail("sarah.johnson@bmw-sis.edu");
             faculty.setDepartment("Mathematics");
-            faculty.setPassword("faculty123");
+            faculty.setPassword(passwordEncoder.encode("faculty123"));
             facultyRepository.save(faculty);
         }
     }
@@ -429,7 +433,7 @@ public class DataInitializer implements CommandLineRunner {
             defaultAdmin.setFirstName("System");
             defaultAdmin.setLastName("Administrator");
             defaultAdmin.setEmail("admin@bmw-sis.edu");
-            defaultAdmin.setPassword("admin123"); // In production, use proper password hashing
+            defaultAdmin.setPassword(passwordEncoder.encode("admin123"));
             defaultAdmin.setRole("ADMIN");
             
             adminRepository.save(defaultAdmin);
@@ -440,7 +444,7 @@ public class DataInitializer implements CommandLineRunner {
             secondAdmin.setFirstName("BMW");
             secondAdmin.setLastName("Admin");
             secondAdmin.setEmail("bmwadmin@bmw-sis.edu");
-            secondAdmin.setPassword("bmw123");
+            secondAdmin.setPassword(passwordEncoder.encode("bmw123"));
             secondAdmin.setRole("ADMIN");
             
             adminRepository.save(secondAdmin);

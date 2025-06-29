@@ -3,6 +3,7 @@ package com.sisregistration.bmwsis.service;
 import com.sisregistration.bmwsis.entity.*;
 import com.sisregistration.bmwsis.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -33,8 +34,20 @@ public class StudentService {
     @Autowired
     private CurriculumAssignmentRepository curriculumAssignmentRepository;
     
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    
     public Optional<Student> authenticateStudent(String studentId, String password) {
-        return studentRepository.findByStudentIdAndPassword(studentId, password);
+        Optional<Student> studentOpt = studentRepository.findByStudentId(studentId);
+        
+        if (studentOpt.isPresent()) {
+            Student student = studentOpt.get();
+            // Use BCrypt password matching
+            if (passwordEncoder.matches(password, student.getPassword())) {
+                return Optional.of(student);
+            }
+        }
+        return Optional.empty();
     }
     
     public List<Grade> getStudentGrades(Student student) {

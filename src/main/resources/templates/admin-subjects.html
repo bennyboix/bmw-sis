@@ -183,59 +183,73 @@
                 </button>
             </div>
             
-            <div th:unless="${subjects == null or subjects.empty}" class="table-container">
-                <table id="subjectsTable">
-                    <thead>
-                        <tr>
-                            <th><i class="fas fa-code"></i> Subject Code</th>
-                            <th><i class="fas fa-book-open"></i> Subject Name</th>
-                            <th><i class="fas fa-graduation-cap"></i> Course</th>
-                            <th><i class="fas fa-weight"></i> Units</th>
-                            <th><i class="fas fa-layer-group"></i> Year Level</th>
-                            <th><i class="fas fa-calendar-alt"></i> Semester</th>
-                            <th><i class="fas fa-link"></i> Prerequisites</th>
-                            <th><i class="fas fa-cogs"></i> Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="subject : ${subjects}">
-                            <td><strong th:text="${subject.subjectCode}">CS101</strong></td>
-                            <td th:text="${subject.subjectName}">Introduction to Programming</td>
-                            <td>
-                                <span class="badge badge-primary" th:text="${subject.course != null ? subject.course : 'General'}">IT</span>
-                            </td>
-                            <td>
-                                <span class="badge badge-info" th:text="${subject.units + ' units'}">3 units</span>
-                            </td>
-                            <td>
-                                <span class="badge badge-success" th:text="${subject.yearLevel + (subject.yearLevel == 1 ? 'st' : (subject.yearLevel == 2 ? 'nd' : (subject.yearLevel == 3 ? 'rd' : 'th'))) + ' Year'}">1st Year</span>
-                            </td>
-                            <td>
-                                <span class="badge badge-secondary" th:text="${subject.semester != null ? (subject.semester == 1 ? '1st Sem' : '2nd Sem') : '1st Sem'}">1st Sem</span>
-                            </td>
-                            <td>
-                                <span th:if="${subject.prerequisites != null and !subject.prerequisites.isEmpty()}" 
-                                      class="badge badge-warning" 
-                                      th:text="${subject.prerequisites}">Math101</span>
-                                <span th:unless="${subject.prerequisites != null and !subject.prerequisites.isEmpty()}" 
-                                      class="badge badge-secondary">None</span>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-info btn-sm" th:onclick="'viewSubject(' + ${subject.id} + ')'" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn btn-primary btn-sm" th:onclick="'editSubject(' + ${subject.id} + ')'" title="Edit Subject">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-danger btn-sm" th:onclick="'deleteSubject(' + ${subject.id} + ')'" title="Delete Subject">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div th:unless="${subjects == null or subjects.empty}" class="subjects-by-program">
+                <!-- Display subjects organized by program/course -->
+                <div th:each="programEntry : ${subjectsByProgram}" class="program-section">
+                    <div class="program-header">
+                        <h3>
+                            <i class="fas fa-graduation-cap"></i>
+                            <span th:text="${programEntry.key}">Course Name</span>
+                            <span class="program-count" th:text="|${#lists.size(programEntry.value)} subjects|">0 subjects</span>
+                        </h3>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="subjects-table">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-code"></i> Subject Code</th>
+                                    <th><i class="fas fa-book-open"></i> Subject Name</th>
+                                    <th><i class="fas fa-weight"></i> Units</th>
+                                    <th><i class="fas fa-layer-group"></i> Year Level</th>
+                                    <th><i class="fas fa-calendar-alt"></i> Semester</th>
+                                    <th><i class="fas fa-link"></i> Prerequisites</th>
+                                    <th><i class="fas fa-cogs"></i> Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="subject : ${programEntry.value}">
+                                    <td><strong th:text="${subject.subjectCode}">CS101</strong></td>
+                                    <td th:text="${subject.subjectDescription}">Introduction to Programming</td>
+                                    <td>
+                                        <span class="badge badge-info" th:text="|${subject.units} units|">3 units</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-success" th:text="${subject.yearLevel} + 'st Year'" th:if="${subject.yearLevel == 1}">1st Year</span>
+                                        <span class="badge badge-success" th:text="${subject.yearLevel} + 'nd Year'" th:if="${subject.yearLevel == 2}">2nd Year</span>
+                                        <span class="badge badge-success" th:text="${subject.yearLevel} + 'rd Year'" th:if="${subject.yearLevel == 3}">3rd Year</span>
+                                        <span class="badge badge-success" th:text="${subject.yearLevel} + 'th Year'" th:if="${subject.yearLevel == 4}">4th Year</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-secondary" th:text="'1st Sem'" th:if="${subject.semester == 1}">1st Sem</span>
+                                        <span class="badge badge-secondary" th:text="'2nd Sem'" th:if="${subject.semester == 2}">2nd Sem</span>
+                                        <span class="badge badge-secondary" th:text="'1st Sem'" th:unless="${subject.semester == 2}">1st Sem</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${subject.prerequisite != null and subject.prerequisite != ''}" 
+                                              class="badge badge-warning" 
+                                              th:text="${subject.prerequisite}">Math101</span>
+                                        <span th:unless="${subject.prerequisite != null and subject.prerequisite != ''}" 
+                                              class="badge badge-secondary">None</span>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-info btn-sm" th:onclick="|viewSubject(${subject.id})|" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-primary btn-sm" th:onclick="|editSubject(${subject.id})|" title="Edit Subject">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" th:onclick="|deleteSubject(${subject.id})|" title="Delete Subject">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -317,19 +331,19 @@
                     </div>
                     
                     <div class="form-group full-width">
-                        <label for="subjectName">
+                        <label for="subjectDescription">
                             <i class="fas fa-book-open"></i>
                             Subject Name
                         </label>
-                    <input type="text" id="subjectName" name="subjectName" required placeholder="e.g., Introduction to Programming">
-                </div>
+                        <input type="text" id="subjectDescription" name="subjectDescription" required placeholder="e.g., Introduction to Programming">
+                    </div>
                     
                     <div class="form-group full-width">
-                        <label for="prerequisites">
+                        <label for="prerequisite">
                             <i class="fas fa-link"></i>
                             Prerequisites
                         </label>
-                    <input type="text" id="prerequisites" name="prerequisites" placeholder="e.g., Math101, CS100 (Leave blank if none)">
+                        <input type="text" id="prerequisite" name="prerequisite" placeholder="e.g., Math101, CS100 (Leave blank if none)">
                         <small class="form-text">Separate multiple prerequisites with commas</small>
                     </div>
                 </div>
@@ -352,7 +366,29 @@
         $(document).ready(function() {
             // Initialize page components
             initializeDataTable();
-            initializeEventHandlers();
+            
+            // Search functionality
+            $('#searchInput').on('keyup', function() {
+                const searchTerm = $(this).val().toLowerCase();
+                $('.subjects-table tbody tr').each(function() {
+                    const rowText = $(this).text().toLowerCase();
+                    if (rowText.indexOf(searchTerm) === -1) {
+                        $(this).hide();
+                    } else {
+                        $(this).show();
+                    }
+                });
+                
+                // Hide program sections that have no visible rows
+                $('.program-section').each(function() {
+                    const visibleRows = $(this).find('tbody tr:visible').length;
+                    if (visibleRows === 0) {
+                        $(this).hide();
+                    } else {
+                        $(this).show();
+                    }
+                });
+            });
         });
         
         function initializeDataTable() {
@@ -360,17 +396,17 @@
         }
         
         function updateStatistics() {
-            const rows = $('#subjectsTable tbody tr');
+            const rows = $('.subjects-table tbody tr');
             const totalSubjects = rows.length;
             
             let totalUnits = 0;
             let majorCount = 0;
             let withPrereqCount = 0;
             
-            // Only calculate if table exists and has data
+            // Only calculate if tables exist and have data
             if (rows.length > 0) {
                 rows.each(function() {
-                    // Calculate total units
+                    // Calculate total units (units column is at index 2)
                     const unitText = $(this).find('td:eq(2)').text().trim();
                     const units = parseInt(unitText.match(/\d+/)?.[0] || 0);
                     totalUnits += units;
@@ -380,8 +416,8 @@
                         majorCount++;
                     }
                     
-                    // Count subjects with prerequisites
-                    const prereq = $(this).find('td:eq(4)').text().trim();
+                    // Count subjects with prerequisites (prerequisites column is at index 5)
+                    const prereq = $(this).find('td:eq(5)').text().trim();
                     if (prereq !== 'None' && prereq !== '') {
                         withPrereqCount++;
                     }
@@ -440,12 +476,12 @@ Prerequisites: ${subject.prerequisite || 'None'}`;
                     document.getElementById('subjectForm').action = '/admin/subjects/update/' + id;
                     
                     document.getElementById('subjectCode').value = subject.subjectCode;
-                    document.getElementById('subjectName').value = subject.subjectDescription;
+                    document.getElementById('subjectDescription').value = subject.subjectDescription;
                     document.getElementById('course').value = subject.course;
                     document.getElementById('units').value = subject.units;
                     document.getElementById('yearLevel').value = subject.yearLevel;
                     document.getElementById('semester').value = subject.semester;
-                    document.getElementById('prerequisites').value = subject.prerequisite || '';
+                    document.getElementById('prerequisite').value = subject.prerequisite || '';
                     
                     // Show the modal
                     $('#subjectModal').fadeIn(300);
